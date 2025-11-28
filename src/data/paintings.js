@@ -1,0 +1,48 @@
+export const paintings = [
+  {
+    id: "green-ghost",
+    title: "Green Ghost",
+    year: "2024",
+    medium: "Oil on canvas",
+    size: "60 x 80 cm",
+    image: "/greenghost.jpeg",
+    description: "A haunting exploration of color and form, this piece captures the ethereal quality of memory and presence.",
+  },
+  {
+    id: "taste-of-snow",
+    title: "The Taste Of Snow",
+    year: "2025",
+    medium: "Oil on canvas",
+    size: "40 x 50 cm",
+    image: "/snow.jpeg",
+    description: "This work explores the sensory experience of winter, translating the cool, delicate nature of snowfall into visual form.",
+  },
+  {
+    id: "casual-drawing",
+    title: "Casual Drawing",
+    year: "2023",
+    medium: "Pencil and Paper",
+    size: "30 x 40 cm",
+    image: "/draw.jpeg",
+    description: "A spontaneous sketch that captures a moment of artistic exploration and expression.",
+  },
+  {
+    id: "girl-and-sky",
+    title: "Girl and Sky",
+    year: "2024",
+    medium: "Oil on canvas",
+    size: "50 x 60 cm",
+    image: "/girlandsky.jpeg",
+    description: "A contemplative piece examining the relationship between figure and atmosphere.",
+  },
+  {
+    id: "cuddle-ghost",
+    title: "Cuddle Ghost",
+    year: "2024",
+    medium: "Oil on canvas",
+    size: "45 x 55 cm",
+    image: "/cuddleghost.jpeg",
+    description: "Exploring themes of comfort and the supernatural, this painting bridges the tangible and intangible.",
+  },
+  // Add more pieces as needed
+];
