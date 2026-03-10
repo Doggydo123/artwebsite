@@ -7,17 +7,17 @@ function Header() {
     <header className="site-header">
       <Link to="/" className="profile">
         <img
-          src="/profile.jpeg"
-          alt="Artist portrait"
+          src="/profileii.jpeg"
+          alt="Portrait"
           className="profile-image"
         />
         <div>
-          <h1 className="artist-name">Michelle Moraga Torres</h1>
-          <p className="artist-tagline">Painter · Christchurch / New Zealand</p>
+          <h1 className="artist-name">Coast To Coast 2028</h1>
+          <p className="artist-tagline">Claude · Dominic · kayaker TBD</p>
         </div>
       </Link>
       <nav className="site-nav">
-        <Link to="/" className={location.pathname === "/" ? "active" : ""}>
+       {/*  <Link to="/" className={location.pathname === "/" ? "active" : ""}>
           About
         </Link>
         <Link
@@ -31,7 +31,7 @@ function Header() {
           className={location.pathname === "/contact" ? "active" : ""}
         >
           Contact
-        </Link>
+        </Link> */}
       </nav>
     </header>
   );

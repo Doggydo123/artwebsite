@@ -261,3 +261,50 @@ body {
     gap: 2rem;
   }
 }
+.section-about {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #1e1e2f, #3b3b5a);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.section-about h2 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  letter-spacing: 2px;
+  color: #ffdd57; /* bright accent */
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+}
+
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.countdown-box {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 15px;
+  min-width: 90px;
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
+}
+
+.countdown-box:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.countdown-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #ffd700;
+  margin-top: 0.3rem;
+  letter-spacing: 1px;
+}
