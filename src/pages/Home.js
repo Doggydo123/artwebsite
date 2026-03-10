@@ -7,17 +7,14 @@ function Home() {
     <main className="site-main">
       <section id="about" className="section section-about">
         <Countdown />
-{/*         <h2>About</h2>
+       <h2>Miletstones</h2>
         <p>
-          Michelle is a painter based in Christchurch, working primarily
-          with [oil/acrylic/watercolour] to explore themes of [light / memory /
-          landscape / identity]. Her work focuses on [short, friendly
-          description of style or subjects].
+          -Kayaking
+
+          -Running
+
+          -Cycling
         </p>
-        <p>
-          She has exhibited in [local galleries / group shows] and creates both
-          personal work and commissioned pieces.
-        </p> */}
       </section>
       {/* 
       <section id="gallery" className="section section-gallery">
