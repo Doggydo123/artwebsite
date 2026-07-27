@@ -174,12 +174,14 @@ export default function Running() {
         <span className="hud-corner bl" /><span className="hud-corner br" />
         <div className="level-overall">
           <span className="level-overall-label">30K Readiness</span>
-          <span className="level-overall-value">{results.overall.level}</span>
+          <span className="level-overall-value">{results.overall.level}<span className="level-overall-max">/99</span></span>
           <div className="level-progress-bar level-progress-bar-lg">
             <div className="level-progress-fill" style={{ width: `${results.overall.pct}%` }} />
           </div>
           <span className="level-progress-label">
-            {results.total} pts · {results.overall.pointsToNext} to level {results.overall.level + 1}
+            {results.overall.maxed
+              ? `${results.total} pts · MAX LEVEL`
+              : `${results.total} pts · ${results.overall.pointsToNext} to level ${results.overall.level + 1}`}
           </span>
         </div>
         <div className="level-stat-grid">
@@ -187,7 +189,7 @@ export default function Running() {
             <div className="level-stat-card" key={c.cat}>
               <div className="level-stat-header">
                 <span className="level-stat-name">{c.cat}</span>
-                <span className="level-stat-level">Lv {c.level.level}</span>
+                <span className="level-stat-level">Lv {c.level.level}/99</span>
               </div>
               <div className="level-progress-bar">
                 <div className="level-progress-fill" style={{ width: `${c.level.pct}%` }} />
@@ -336,15 +338,15 @@ export default function Running() {
                 <span>Decay half-life (days)</span>
                 <input type="number" min="1" value={rulesForm.decayHalfLifeDays} onChange={(e) => setRulesForm({ ...rulesForm, decayHalfLifeDays: Number(e.target.value) })} />
               </label>
-              <p className="rules-section-label">Leveling</p>
+              <p className="rules-section-label">Leveling (1–99, RuneScape-style curve)</p>
               <div className="form-row">
                 <label>
-                  <span>Level base points</span>
-                  <input type="number" min="1" value={rulesForm.levelBase} onChange={(e) => setRulesForm({ ...rulesForm, levelBase: Number(e.target.value) })} />
+                  <span>Levels per XP-doubling</span>
+                  <input type="number" min="1" step="0.5" value={rulesForm.doublingPeriod} onChange={(e) => setRulesForm({ ...rulesForm, doublingPeriod: Number(e.target.value) })} />
                 </label>
                 <label>
-                  <span>Level growth (exponent)</span>
-                  <input type="number" min="1" step="0.1" value={rulesForm.levelExponent} onChange={(e) => setRulesForm({ ...rulesForm, levelExponent: Number(e.target.value) })} />
+                  <span>Curve scale</span>
+                  <input type="number" min="0.01" step="0.01" value={rulesForm.scale} onChange={(e) => setRulesForm({ ...rulesForm, scale: Number(e.target.value) })} />
                 </label>
               </div>
               <div className="modal-actions">

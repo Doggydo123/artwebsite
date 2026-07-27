@@ -15,22 +15,27 @@ export const RUN_CATEGORY_FIELDS = {
 // Default training + leveling rules — editable in the tab's Training
 // Rules panel. Tuned for a beginner build-up toward one big goal (30km
 // of uphill, off-track running), not sustained elite training:
-//   - Points are deliberately generous early (low levelBase) so the
-//     first few sessions feel rewarding.
 //   - Hill Running is weighted heaviest per unit, since vertical gain is
 //     the specific limiter for an off-track uphill goal.
 //   - Long Run gets a higher per-km rate than Flat Running, since
 //     building time-on-feet distance is the other key limiter.
 //   - decayHalfLifeDays models detraining: go quiet for that many days
 //     and a category's accumulated points (and level) roughly halve.
+//   - Leveling follows the same 1-99 curve as gameLevels.js's RuneScape-
+//     style formula: doublingPeriod=7 (points-per-level roughly doubles
+//     every 7 levels, same as RuneScape's XP table), scale=1 fits it to
+//     this app's points economy. With these defaults, a realistic
+//     "comfortably ready for 30km hilly" sustained training week lands
+//     around level 35-40 — real progress, nowhere near the level-99
+//     ceiling (which would need genuinely elite ultrarunner-tier volume).
 export const DEFAULT_RUN_RULES = {
   pointsPerFlatKm: 1, // Flat Running: points per km
   pointsPerHillMeter: 0.05, // Hill Running: points per metre of elevation gain
   pointsPerLongRunKm: 1.5, // Long Run: points per km
   pointsPerGymSession: 8, // Gym / Strength: points per logged session
   decayHalfLifeDays: 14, // accumulated points halve after this many idle days
-  levelBase: 20, // beginner-friendly: level 1 needs just 20 pts
-  levelExponent: 1.5 // still gets steeper each level, just gentler than a head start would suggest
+  doublingPeriod: 7, // levels per XP-doubling in the curve (RuneScape uses 7)
+  scale: 1 // multiplier to fit the curve to this app's points economy
 };
 
 export const RUNNING_SEED = {

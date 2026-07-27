@@ -57,8 +57,8 @@ const DEFAULT_RUN_RULES = {
   pointsPerLongRunKm: 1.5,
   pointsPerGymSession: 8,
   decayHalfLifeDays: 14,
-  levelBase: 20,
-  levelExponent: 1.5
+  doublingPeriod: 7,
+  scale: 1
 };
 
 function doGet(e) {

@@ -25,13 +25,17 @@ on GitHub Pages via `gh-pages`.
   limiter for this goal), **Long Run** (km, weighted above flat since
   time-on-feet distance is the other limiter), and **Gym / Strength**
   (sessions). Each category gets its own level plus an overall **30K
-  Readiness** level, tuned beginner-friendly (level 1 needs just 20 pts).
-  Unlike the other tabs, points **decay over time** (configurable
-  half-life, default 14 days) — go quiet and a level drops, modeling
-  real detraining rather than a number that only ever climbs. Also shows
-  longest run so far and elevation gained in the last 30 days as plain
-  practical readouts. All of it — point rates, decay half-life, the
-  leveling curve — is editable in "Training Rules".
+  Readiness** level, on a RuneScape-style **1–99 curve** — points needed
+  per level roughly double every 7 levels, so early levels come fast but
+  99 is a deliberately-unreachable flex, not a real target. With the
+  defaults, a realistic sustained "comfortably ready for 30km hilly"
+  training week lands around **level 35-ish**. Unlike the other tabs,
+  points **decay over time** (configurable half-life, default 14 days) —
+  go quiet and a level drops, modeling real detraining rather than a
+  number that only ever climbs. Also shows longest run so far and
+  elevation gained in the last 30 days as plain practical readouts. All
+  of it — point rates, decay half-life, the leveling curve — is editable
+  in "Training Rules".
 - **Claude's Games** — a personal points system: log Gym sessions, Steps,
   Sleep, Pages Read, and Spending, and see them converted into a score
   using editable scoring rules. Categories roll up into four stats —

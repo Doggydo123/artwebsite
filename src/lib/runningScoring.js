@@ -1,4 +1,4 @@
-import { levelInfo } from "./gameLevels";
+import { rsLevelInfo } from "./gameLevels";
 
 function rawPoints(entry, rules) {
   switch (entry.category) {
@@ -41,12 +41,12 @@ export function computeRunnerLevels(entries, person, categories, rules) {
     return {
       cat,
       points: Math.round(points * 10) / 10,
-      level: levelInfo(points, rules),
+      level: rsLevelInfo(points, rules),
       daysSinceLast: lastEntry ? Math.round(ageDays(lastEntry.date)) : null
     };
   });
   const total = perCategory.reduce((sum, c) => sum + c.points, 0);
-  return { perCategory, overall: levelInfo(total, rules), total: Math.round(total * 10) / 10 };
+  return { perCategory, overall: rsLevelInfo(total, rules), total: Math.round(total * 10) / 10 };
 }
 
 // Practical, non-decayed readouts for gauging actual 30K readiness.
