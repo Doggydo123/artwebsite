@@ -13,11 +13,17 @@ export const APP_CONFIG = {
     passwordHash: "057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86"
   },
 
-  // Optional: Google Drive sync for the Collecting tab. Leave clientId
-  // empty to disable the "Connect Drive Sync" button — the tab still
-  // works fine on the browser's local storage alone. See README.md.
-  google: {
-    clientId: "",
-    driveFileName: "jarvis-collecting-data.json"
+  // Optional: Google Sheets sync for the Collecting tab, backed by the
+  // Apps Script in google-apps-script/Code.gs. Leave webAppUrl empty to
+  // stay on local-storage-only — the tab still works fine without it.
+  // See README.md for the deployment steps.
+  sheets: {
+    // The /exec URL you get after deploying the Apps Script as a Web App.
+    webAppUrl: "",
+    // Must exactly match the ACCESS_KEY script property you set in the
+    // Apps Script project. This is not a real secret — it ships in the
+    // public JS bundle like everything else here — it just keeps the
+    // sync endpoint from being casually stumbled on.
+    accessKey: ""
   }
 };

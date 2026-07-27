@@ -42,27 +42,49 @@ link.**
 
 Since this is a static site, edits live in the browser's `localStorage` by
 default — refreshing won't wipe them, but clearing browser data or
-switching devices will. For cross-device sync, connect Google Drive:
+switching devices will. For cross-device sync, connect a Google Sheet as
+the backing store — you can also just open that Sheet directly to eyeball
+or bulk-edit your data.
 
-1. [Google Cloud Console](https://console.cloud.google.com/) → new project
-   → **APIs & Services → Enabled APIs** → enable **Google Drive API**.
-2. **OAuth consent screen** → External → fill in app name/email → leave in
-   "Testing" mode and add your own Google account as a test user.
-3. **Credentials → Create Credentials → OAuth client ID** → Web
-   application → **Authorized JavaScript origins**:
-   `https://doggydo123.github.io` (and `http://localhost:3000` for local
-   testing) → copy the Client ID.
-4. Paste it into [src/config.js](src/config.js):
+This uses a small Google Apps Script Web App
+([google-apps-script/Code.gs](google-apps-script/Code.gs)) instead of
+OAuth: once deployed, the site just calls a plain URL to read/write rows —
+no Google sign-in popups, ever, because the script always runs as you.
+
+**Setup (about 5 minutes, one time):**
+
+1. Create a new Google Sheet (sheets.new).
+2. **Extensions → Apps Script**. Delete the placeholder code and paste in
+   the full contents of [google-apps-script/Code.gs](google-apps-script/Code.gs).
+3. **Project Settings** (gear icon, left sidebar) → **Script Properties**
+   → **Add script property**: name `ACCESS_KEY`, value any long random
+   string (e.g. run `crypto.randomUUID()` in a browser console to generate
+   one, or make one up). This is what stops randos from finding the URL
+   and writing to your sheet — see the caveat below.
+4. Back in the script editor: **Deploy → New deployment** → gear icon →
+   **Web app**. Set **Execute as: Me**, **Who has access: Anyone**. Deploy,
+   and authorize it (it's your own script, acting on your own sheet).
+5. Copy the **Web app URL** (ends in `/exec`).
+6. Paste both values into [src/config.js](src/config.js):
    ```js
-   google: {
-     clientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
-     driveFileName: "jarvis-collecting-data.json"
+   sheets: {
+     webAppUrl: "https://script.google.com/macros/s/XXXXXXX/exec",
+     accessKey: "the-same-string-you-put-in-Script-Properties"
    }
    ```
-5. Rebuild and redeploy. A **"Connect Drive Sync"** button appears on the
-   Collecting tab — it uses the restrictive `drive.file` scope, so the app
-   can only ever see the one JSON file it creates, nothing else in your
-   Drive.
+7. Rebuild and redeploy (see below). The Collecting tab will show a
+   **"Sheet Synced"** pill and start reading/writing rows automatically —
+   no button to click.
+
+**Caveat:** `accessKey` is not real security — it ships in the public JS
+bundle like everything else in this repo, so anyone who opens devtools on
+the deployed site can read it. It only stops the URL from being stumbled
+on by accident; it isn't a substitute for the login gate, which is what
+actually keeps casual visitors out.
+
+The sheet gets two tabs: **Items** (one row per entry) and **Meta** (a
+single `updatedAt` timestamp used to decide whether the sheet or a
+browser's local copy is newer when they disagree).
 
 ## Local development
 

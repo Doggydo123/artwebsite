@@ -227,6 +227,17 @@ input:focus, select:focus, textarea:focus {
 
 /* ---------- Collecting ---------- */
 .collecting-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+.sync-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border: 1px solid var(--accent-dim);
+  border-radius: 3px;
+  padding: 0.45rem 0.9rem;
+}
 .collecting-layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; align-items: start; }
 @media (max-width: 860px) { .collecting-layout { grid-template-columns: 1fr; } }
 

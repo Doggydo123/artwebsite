@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { COLLECTING_SEED } from "../data/collectingSeed";
-import { useDriveSync } from "../lib/useDriveSync";
+import { useSheetsSync } from "../lib/useSheetsSync";
 
 const LOCAL_KEY = "jarvis_collecting_data";
-const DRIVE_FILE_NAME = "jarvis-collecting-data.json";
 
 function loadLocal() {
   const raw = localStorage.getItem(LOCAL_KEY);
@@ -25,16 +24,15 @@ export default function Collecting() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  const driveSync = useDriveSync({
-    fileName: DRIVE_FILE_NAME,
-    onRemoteData: (remoteData) => {
+  const sheetsSync = useSheetsSync({
+    onRemoteData: (remote) => {
       setDataState((local) => {
-        if (!remoteData) {
-          driveSync.push(local);
-          return local;
+        const remoteIsNewer = (remote.updatedAt || 0) > (local.updatedAt || 0);
+        if (remoteIsNewer) {
+          return { items: remote.items || [], updatedAt: remote.updatedAt };
         }
-        const remoteIsNewer = (remoteData.updatedAt || 0) >= (local.updatedAt || 0);
-        return remoteIsNewer ? remoteData : local;
+        sheetsSync.push(local);
+        return local;
       });
     }
   });
@@ -46,7 +44,7 @@ export default function Collecting() {
   function persist(next) {
     const stamped = { ...next, updatedAt: Date.now() };
     setDataState(stamped);
-    driveSync.push(stamped);
+    sheetsSync.push(stamped);
   }
 
   const categories = useMemo(
@@ -125,25 +123,22 @@ export default function Collecting() {
     setModalOpen(false);
   }
 
-  const driveLabels = {
-    connected: "Drive Synced",
-    syncing: "Syncing…",
-    disconnected: "Connect Drive Sync",
-    unconfigured: "Drive Sync (not configured)",
-    error: "Drive Sync Error"
+  const sheetsLabels = {
+    synced: "Sheet Synced",
+    syncing: "Saving to Sheet…",
+    loading: "Loading Sheet…",
+    unconfigured: "Sheet Sync (not configured)",
+    error: "Sheet Sync Error"
   };
 
   return (
     <div>
       <div className="collecting-header">
         <h1 className="page-title">Collecting</h1>
-        <button
-          className="btn btn-ghost"
-          onClick={() => (driveSync.isConfigured ? driveSync.connect() : window.alert("Google Drive sync isn't configured yet. See README.md."))}
-        >
-          <span className={"dot" + (driveSync.status === "connected" || driveSync.status === "syncing" ? " online" : "")} />
-          {driveLabels[driveSync.status] || "Connect Drive Sync"}
-        </button>
+        <span className="sync-pill">
+          <span className={"dot" + (sheetsSync.status === "synced" || sheetsSync.status === "syncing" ? " online" : "")} />
+          {sheetsLabels[sheetsSync.status] || "Sheet Sync"}
+        </span>
       </div>
 
       <div className="collecting-layout">
