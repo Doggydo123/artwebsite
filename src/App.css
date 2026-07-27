@@ -308,6 +308,53 @@ input:focus, select:focus, textarea:focus {
 /* ---------- Game system ---------- */
 .game-header-actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
 
+.level-hero { display: flex; flex-wrap: wrap; gap: 2rem; }
+.level-overall { min-width: 220px; text-align: center; }
+.level-overall-label { display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+.level-overall-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--good);
+  text-shadow: 0 0 14px rgba(77, 255, 136, 0.5);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.level-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(53, 240, 255, 0.08);
+  border: 1px solid var(--accent-dim);
+  overflow: hidden;
+}
+.level-progress-bar-lg { height: 10px; }
+.level-progress-fill { height: 100%; background: var(--good); box-shadow: 0 0 8px rgba(77, 255, 136, 0.6); }
+.level-progress-label { display: block; font-size: 0.7rem; color: var(--text-dim); margin-top: 0.4rem; }
+
+.level-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; flex: 1; align-content: center; }
+.level-stat-card {
+  border: 1px solid var(--accent-dim);
+  background: rgba(53, 240, 255, 0.03);
+  border-radius: 4px;
+  padding: 0.6rem 0.9rem;
+}
+.level-stat-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
+.level-stat-name { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.level-stat-level { font-family: var(--font-display); font-size: 1.1rem; color: var(--good); }
+.level-stat-detail { display: block; font-size: 0.7rem; color: var(--text-dim); margin-top: 0.35rem; }
+
+.rules-section-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-top: 1px dashed rgba(53, 240, 255, 0.2);
+  margin: 0.25rem 0 0;
+  padding-top: 0.75rem;
+}
+
 .score-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 2rem; }
 .score-total { text-align: center; min-width: 140px; }
 .score-total-value {

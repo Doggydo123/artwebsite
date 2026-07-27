@@ -30,7 +30,9 @@ const DEFAULT_RULES = {
   pointsPerPage: 1,
   spendingDailyBudget: 30,
   pointsPerDollarUnderBudget: 1,
-  pointsPerGymSession: 15
+  pointsPerGymSession: 15,
+  levelBase: 50,
+  levelExponent: 1.6
 };
 
 // ---- Brewing ----

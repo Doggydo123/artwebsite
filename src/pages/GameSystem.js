@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { GAME_CATEGORIES, GAME_SEED, DEFAULT_RULES } from "../data/gameSeed";
+import { GAME_CATEGORIES, GAME_SEED, DEFAULT_RULES, STAT_GROUPS } from "../data/gameSeed";
 import { useSheetsSync } from "../lib/useSheetsSync";
 import { computeScores } from "../lib/gameScoring";
+import { levelInfo, computeStatPoints } from "../lib/gameLevels";
 import { useGamePasscode, changeGamePasscode } from "../auth/useGamePasscode";
 import GamePasscodeScreen from "../auth/GamePasscodeScreen";
 
@@ -9,7 +10,12 @@ const LOCAL_KEY = "claudis_game_data";
 
 function loadLocal() {
   const raw = localStorage.getItem(LOCAL_KEY);
-  if (raw) return JSON.parse(raw);
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    // Merge over DEFAULT_RULES in case this was cached before a rule key
+    // (e.g. levelBase/levelExponent) existed.
+    return { ...parsed, rules: { ...DEFAULT_RULES, ...(parsed.rules || {}) } };
+  }
   return { ...GAME_SEED, passcodeHash: null, updatedAt: 0 };
 }
 
@@ -68,7 +74,10 @@ function GameDashboard({ onLock }) {
         if (remoteIsNewer) {
           const merged = {
             entries: remote.entries || [],
-            rules: remote.rules || DEFAULT_RULES,
+            // Merge over DEFAULT_RULES so a Sheet saved before a new rule
+            // key existed (e.g. levelBase/levelExponent) still gets a
+            // sensible fallback instead of `undefined`.
+            rules: { ...DEFAULT_RULES, ...(remote.rules || {}) },
             passcodeHash: remote.passcodeHash || local.passcodeHash || null,
             updatedAt: remote.updatedAt
           };
@@ -91,7 +100,17 @@ function GameDashboard({ onLock }) {
     sheetsSync.push(stamped);
   }
 
-  const scores = useMemo(() => computeScores(data.entries, data.rules || DEFAULT_RULES), [data.entries, data.rules]);
+  const rules = data.rules || DEFAULT_RULES;
+  const scores = useMemo(() => computeScores(data.entries, rules), [data.entries, rules]);
+  const statPoints = useMemo(() => computeStatPoints(scores.perCategory, STAT_GROUPS), [scores.perCategory]);
+  const statLevels = useMemo(() => {
+    const result = {};
+    Object.entries(statPoints).forEach(([stat, pts]) => {
+      result[stat] = levelInfo(pts, rules);
+    });
+    return result;
+  }, [statPoints, rules]);
+  const overallLevel = useMemo(() => levelInfo(scores.total, rules), [scores.total, rules]);
 
   function openNewEntry(category) {
     setForm({ ...emptyForm, category, date: todayStr() });
@@ -202,6 +221,38 @@ function GameDashboard({ onLock }) {
           <button className="btn btn-ghost" onClick={onLock}>Lock</button>
         </div>
       </div>
+
+      <section className="hud-panel panel level-hero">
+        <span className="hud-corner tl" /><span className="hud-corner tr" />
+        <span className="hud-corner bl" /><span className="hud-corner br" />
+        <div className="level-overall">
+          <span className="level-overall-label">Cumulative Level</span>
+          <span className="level-overall-value">{overallLevel.level}</span>
+          <div className="level-progress-bar level-progress-bar-lg">
+            <div className="level-progress-fill" style={{ width: `${overallLevel.pct}%` }} />
+          </div>
+          <span className="level-progress-label">
+            {overallLevel.points} pts · {overallLevel.pointsToNext} to level {overallLevel.level + 1}
+          </span>
+        </div>
+        <div className="level-stat-grid">
+          {Object.entries(STAT_GROUPS).map(([stat]) => {
+            const info = statLevels[stat];
+            return (
+              <div className="level-stat-card" key={stat}>
+                <div className="level-stat-header">
+                  <span className="level-stat-name">{stat}</span>
+                  <span className="level-stat-level">Lv {info.level}</span>
+                </div>
+                <div className="level-progress-bar">
+                  <div className="level-progress-fill" style={{ width: `${info.pct}%` }} />
+                </div>
+                <span className="level-stat-detail">{info.points} pts · {info.pointsToNext} to next</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="hud-panel panel score-hero">
         <span className="hud-corner tl" /><span className="hud-corner tr" />
@@ -347,6 +398,17 @@ function GameDashboard({ onLock }) {
                 <span>Points per gym session</span>
                 <input type="number" min="0" value={rulesForm.pointsPerGymSession} onChange={(e) => setRulesForm({ ...rulesForm, pointsPerGymSession: Number(e.target.value) })} />
               </label>
+              <p className="rules-section-label">Leveling</p>
+              <div className="form-row">
+                <label>
+                  <span>Level base points</span>
+                  <input type="number" min="1" value={rulesForm.levelBase} onChange={(e) => setRulesForm({ ...rulesForm, levelBase: Number(e.target.value) })} />
+                </label>
+                <label>
+                  <span>Level growth (exponent)</span>
+                  <input type="number" min="1" step="0.1" value={rulesForm.levelExponent} onChange={(e) => setRulesForm({ ...rulesForm, levelExponent: Number(e.target.value) })} />
+                </label>
+              </div>
               <div className="modal-actions">
                 <span />
                 <div className="modal-actions-right">

@@ -20,8 +20,13 @@ on GitHub Pages via `gh-pages`.
   all computed live from the latest reading you log.
 - **Claude's Games** — a personal points system: log Gym sessions, Steps,
   Sleep, Pages Read, and Spending, and see them converted into a score
-  using editable scoring rules. Has its own passcode on top of the main
-  login (see below), so only Claude gets in.
+  using editable scoring rules. Categories roll up into four stats —
+  **Physical** (Gym, Steps), **Mental** (Sleep), **Learning** (Pages Read),
+  **Upkeep** (Spending) — each with its own level, plus an overall
+  **Cumulative Level** from the total across all of them. Levels get
+  harder to reach each time (an editable curve — see "Leveling" in the
+  Scoring Rules panel). Has its own passcode on top of the main login
+  (see below), so only Claude gets in.
 
 ## Login gate
 
@@ -67,6 +72,17 @@ game: {
   }
 }
 ```
+
+### Leveling curve
+
+Points needed to *reach* level `N` = `levelBase * N ^ levelExponent`
+(defaults: base 50, exponent 1.6 — level 1 needs 50 pts, level 2 needs
+~152, level 3 needs ~290, and so on, always getting steeper). Both
+`levelBase` and `levelExponent` are editable in the "Scoring Rules" panel
+under "Leveling", and apply to every stat's level as well as the overall
+Cumulative Level. A stat's points are just the sum of its categories'
+points from the score breakdown above it — same live-computed numbers,
+so deleting a logged entry can lower a level, same as it lowers a score.
 
 ## Data persistence (Collecting + Brewing + Claude's Games)
 
