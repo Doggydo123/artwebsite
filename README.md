@@ -1,4 +1,4 @@
-# J.A.R.V.I.S. Operations Console
+# CLAUDIS Operations Console
 
 A private, tabbed dashboard deployed at
 [doggydo123.github.io/artwebsite](https://doggydo123.github.io/artwebsite),
@@ -11,9 +11,17 @@ on GitHub Pages via `gh-pages`.
   training milestones.
 - **Collecting** — categorized inventory dashboard (bullion, collectibles,
   wine, etc.) with add/edit/delete, search/filter, and running value
-  estimates.
-- **Claude's Game System** — placeholder for a points system (pages read,
-  fitness, etc.) — scoring rules aren't defined yet.
+  estimates in NZD.
+- **Brewing** — tracks in-progress batches (beer/cider/perry): specs (OG,
+  expected FG, estimated ABV, yeast, ferment temp), a status (Pitched →
+  Fermenting → Ready to bottle → Conditioning → Ready to drink), and a
+  gravity-reading log per batch. Days since pitch, % through estimated
+  fermentation, estimated bottling/drink-ready dates, and current ABV are
+  all computed live from the latest reading you log.
+- **Claude's Games** — a personal points system: log Gym sessions, Steps,
+  Sleep, Pages Read, and Spending, and see them converted into a score
+  using editable scoring rules. Has its own passcode on top of the main
+  login (see below), so only Claude gets in.
 
 ## Login gate
 
@@ -38,18 +46,33 @@ link.**
    }
    ```
 
-## Data persistence (Collecting tab)
+### Claude's Games passcode
+
+The Games tab has a second, independent passcode (no username) gating just
+that tab — set it the same way, default passcode is `1234`:
+
+```js
+game: {
+  auth: {
+    passcodeHash: "<hash of the passcode, same crypto.subtle snippet as above>"
+  }
+}
+```
+
+## Data persistence (Collecting + Brewing + Claude's Games)
 
 Since this is a static site, edits live in the browser's `localStorage` by
 default — refreshing won't wipe them, but clearing browser data or
 switching devices will. For cross-device sync, connect a Google Sheet as
 the backing store — you can also just open that Sheet directly to eyeball
-or bulk-edit your data.
+or bulk-edit data, and the Games tab's scoring rules can be tweaked
+directly in its sheet tab too.
 
 This uses a small Google Apps Script Web App
 ([google-apps-script/Code.gs](google-apps-script/Code.gs)) instead of
 OAuth: once deployed, the site just calls a plain URL to read/write rows —
-no Google sign-in popups, ever, because the script always runs as you.
+no Google sign-in popups, ever, because the script always runs as you. One
+script + one spreadsheet serves all three tabs, each in their own sheet tabs.
 
 **Setup (about 5 minutes, one time):**
 
@@ -72,19 +95,28 @@ no Google sign-in popups, ever, because the script always runs as you.
      accessKey: "the-same-string-you-put-in-Script-Properties"
    }
    ```
-7. Rebuild and redeploy (see below). The Collecting tab will show a
+7. Rebuild and redeploy (see below). All three tabs will show a
    **"Sheet Synced"** pill and start reading/writing rows automatically —
    no button to click.
+
+**Updating the script later** (e.g. this repo ships a new `Code.gs`): paste
+the new code into the same Apps Script project, then **Deploy → Manage
+deployments** → pencil/edit icon on the existing deployment → **Version:
+New version** → **Deploy**. This keeps the same `/exec` URL — creating a
+new deployment instead would give you a different URL and break
+`config.js`.
 
 **Caveat:** `accessKey` is not real security — it ships in the public JS
 bundle like everything else in this repo, so anyone who opens devtools on
 the deployed site can read it. It only stops the URL from being stumbled
-on by accident; it isn't a substitute for the login gate, which is what
-actually keeps casual visitors out.
+on by accident; it isn't a substitute for the login/passcode gates, which
+are what actually keep casual visitors out.
 
-The sheet gets two tabs: **Items** (one row per entry) and **Meta** (a
+The spreadsheet gets: **Items** + **Meta** (Collecting), **Brews** +
+**BrewReadings** + **BrewMeta** (Brewing), and **GameEntries** +
+**GameRules** + **GameMeta** (Claude's Games). Each `*Meta` sheet holds a
 single `updatedAt` timestamp used to decide whether the sheet or a
-browser's local copy is newer when they disagree).
+browser's local copy is newer when they disagree.
 
 ## Local development
 

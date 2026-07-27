@@ -6,7 +6,13 @@ import { APP_CONFIG } from "../config";
 // owner, so the site just calls a plain URL. Pulls the sheet once on
 // mount (comparing updatedAt against the local copy) and pushes edits
 // back, debounced.
-export function useSheetsSync({ onRemoteData }) {
+//
+// `resource` picks which sheet(s) the Apps Script reads/writes
+// ("collecting" or "game") — see Code.gs. `push(payload)` sends
+// whatever shape that resource needs (e.g. { items, updatedAt } or
+// { entries, rules, updatedAt }); it's forwarded to the script as-is
+// alongside the key and resource.
+export function useSheetsSync({ resource = "collecting", onRemoteData }) {
   const { webAppUrl, accessKey } = APP_CONFIG.sheets || {};
   const isConfigured = Boolean(webAppUrl && accessKey);
   const [status, setStatus] = useState(isConfigured ? "loading" : "unconfigured");
@@ -18,7 +24,8 @@ export function useSheetsSync({ onRemoteData }) {
     (async () => {
       try {
         setStatus("loading");
-        const res = await fetch(`${webAppUrl}?key=${encodeURIComponent(accessKey)}`);
+        const url = `${webAppUrl}?key=${encodeURIComponent(accessKey)}&resource=${encodeURIComponent(resource)}`;
+        const res = await fetch(url);
         const json = await res.json();
         if (json.error) throw new Error(json.error);
         if (!cancelled) {
@@ -32,9 +39,9 @@ export function useSheetsSync({ onRemoteData }) {
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConfigured, webAppUrl, accessKey]);
+  }, [isConfigured, webAppUrl, accessKey, resource]);
 
-  const push = useCallback((data) => {
+  const push = useCallback((payload) => {
     if (!isConfigured) return;
     clearTimeout(pushTimer.current);
     pushTimer.current = setTimeout(async () => {
@@ -43,7 +50,7 @@ export function useSheetsSync({ onRemoteData }) {
         const res = await fetch(webAppUrl, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ key: accessKey, items: data.items, updatedAt: data.updatedAt })
+          body: JSON.stringify({ key: accessKey, resource, ...payload })
         });
         const json = await res.json();
         if (json.error) throw new Error(json.error);
@@ -53,7 +60,7 @@ export function useSheetsSync({ onRemoteData }) {
         setStatus("error");
       }
     }, 1500);
-  }, [isConfigured, webAppUrl, accessKey]);
+  }, [isConfigured, webAppUrl, accessKey, resource]);
 
   return { status, isConfigured, push };
 }

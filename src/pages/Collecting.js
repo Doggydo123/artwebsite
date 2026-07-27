@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { COLLECTING_SEED } from "../data/collectingSeed";
 import { useSheetsSync } from "../lib/useSheetsSync";
 
-const LOCAL_KEY = "jarvis_collecting_data";
+const LOCAL_KEY = "claudis_collecting_data";
 
 function loadLocal() {
   const raw = localStorage.getItem(LOCAL_KEY);
@@ -12,7 +12,7 @@ function loadLocal() {
 
 function money(n) {
   if (n === null || n === undefined || isNaN(n)) return "—";
-  return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return "NZ$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 const emptyForm = { id: "", name: "", category: "", quantity: "", unitValue: "", notes: "" };
@@ -25,6 +25,7 @@ export default function Collecting() {
   const [form, setForm] = useState(emptyForm);
 
   const sheetsSync = useSheetsSync({
+    resource: "collecting",
     onRemoteData: (remote) => {
       setDataState((local) => {
         const remoteIsNewer = (remote.updatedAt || 0) > (local.updatedAt || 0);
@@ -220,7 +221,7 @@ export default function Collecting() {
                   <input type="number" min="0" step="1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
                 </label>
                 <label>
-                  <span>Est. Unit Value ($)</span>
+                  <span>Est. Unit Value (NZD)</span>
                   <input type="number" min="0" step="0.01" value={form.unitValue} onChange={(e) => setForm({ ...form, unitValue: e.target.value })} />
                 </label>
               </div>

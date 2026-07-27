@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { APP_CONFIG } from "../config";
 
-const SESSION_KEY = "claudis_session";
+const SESSION_KEY = "claudis_game_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 async function sha256Hex(text) {
@@ -20,24 +20,27 @@ function readSession() {
   }
 }
 
-export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(readSession);
+// A second, independent passcode gate for the Claude's Games tab —
+// separate from the main site login, so only Claude can get past it
+// even though everyone who knows the main password can see the tab
+// exists.
+export function useGamePasscode() {
+  const [unlocked, setUnlocked] = useState(readSession);
 
-  const login = useCallback(async (username, password) => {
-    const hash = await sha256Hex(password);
-    const cfg = APP_CONFIG.auth;
-    if (username === cfg.username && hash === cfg.passwordHash) {
+  const unlock = useCallback(async (passcode) => {
+    const hash = await sha256Hex(passcode);
+    if (hash === APP_CONFIG.game.auth.passcodeHash) {
       localStorage.setItem(SESSION_KEY, JSON.stringify({ expires: Date.now() + SESSION_TTL_MS }));
-      setIsAuthenticated(true);
+      setUnlocked(true);
       return true;
     }
     return false;
   }, []);
 
-  const logout = useCallback(() => {
+  const lock = useCallback(() => {
     localStorage.removeItem(SESSION_KEY);
-    setIsAuthenticated(false);
+    setUnlocked(false);
   }, []);
 
-  return { isAuthenticated, login, logout };
+  return { unlocked, unlock, lock };
 }

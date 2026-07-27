@@ -305,15 +305,104 @@ input:focus, select:focus, textarea:focus {
 .modal-actions-right { display: flex; gap: 0.6rem; }
 
 /* ---------- Game system ---------- */
-.game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-.game-stat-card { text-align: center; padding: 1.5rem 1rem; }
-.game-stat-card .stat-value {
+.game-header-actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+.score-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 2rem; }
+.score-total { text-align: center; min-width: 140px; }
+.score-total-value {
   display: block;
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 3rem;
+  font-weight: 900;
   color: var(--accent);
-  text-shadow: 0 0 10px rgba(53, 240, 255, 0.4);
-  margin-bottom: 0.4rem;
+  text-shadow: 0 0 14px rgba(53, 240, 255, 0.5);
+  line-height: 1;
 }
-.game-stat-card .stat-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
-.game-coming-soon { color: var(--text-dim); font-size: 0.85rem; text-align: center; margin-top: 1rem; }
+.score-total-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+
+.score-breakdown { display: flex; flex-wrap: wrap; gap: 0.75rem; flex: 1; }
+.score-chip {
+  border: 1px solid var(--accent-dim);
+  background: rgba(53, 240, 255, 0.03);
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  min-width: 110px;
+  text-align: center;
+}
+.score-chip-value { display: block; font-family: var(--font-display); font-size: 1.3rem; color: var(--accent); }
+.score-chip-label { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.2rem; }
+.score-chip-detail { display: block; font-size: 0.7rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+.game-category-panel { margin-top: 1.25rem; }
+.entry-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.entry-row {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--accent-dim);
+  border-left: 3px solid var(--accent);
+  background: rgba(53, 240, 255, 0.03);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+.entry-row:hover { border-color: var(--accent); box-shadow: 0 0 10px rgba(53, 240, 255, 0.2); }
+.entry-date { color: var(--text-dim); min-width: 6.5rem; }
+.entry-detail { color: var(--text); font-weight: bold; }
+.entry-notes { color: var(--text-dim); font-style: italic; }
+
+/* ---------- Brewing ---------- */
+.brew-brand-tag { color: var(--text-dim); font-size: 0.8rem; margin: -0.5rem 0 0; letter-spacing: 0.06em; }
+
+.brew-card { margin-top: 1.25rem; }
+.brew-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.brew-name { margin: 0; cursor: pointer; }
+.brew-name:hover { text-decoration: underline; }
+.brew-subtitle { color: var(--text-dim); font-size: 0.8rem; margin: 0.15rem 0 0; font-style: italic; }
+.brew-status-select { min-width: 160px; }
+
+.brew-spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
+.brew-spec { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8rem; }
+.brew-spec span { color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.brew-spec strong { color: var(--text); }
+
+.brew-extras { color: var(--text-dim); font-size: 0.82rem; font-style: italic; margin: 0.4rem 0; }
+
+.brew-timeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(53, 240, 255, 0.15);
+}
+
+.brew-progress-row { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
+.brew-progress-bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(53, 240, 255, 0.08); border: 1px solid var(--accent-dim); overflow: hidden; }
+.brew-progress-fill { height: 100%; background: var(--accent); box-shadow: 0 0 8px rgba(53, 240, 255, 0.6); }
+.brew-progress-label { font-size: 0.75rem; color: var(--text-dim); white-space: nowrap; }
+
+.brew-abv-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; font-size: 0.85rem; margin-bottom: 1rem; }
+.brew-abv-row strong { color: var(--accent); }
+.brew-no-readings { color: var(--text-dim); font-style: italic; }
+.brew-stable-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--good);
+  border: 1px solid var(--good);
+  border-radius: 3px;
+  padding: 0.2rem 0.6rem;
+}
+
+.brew-readings-section { margin-top: 0.5rem; }
+.brew-readings-title { font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin: 0; }
+.brew-modal { max-width: 640px; }
+
+/* ---------- Passcode gate (Claude's Games) ---------- */
+.passcode-panel { max-width: 420px; margin: 3rem auto; padding: 2rem; text-align: center; }
+.passcode-hint { color: var(--text-dim); font-size: 0.85rem; margin: -0.5rem 0 1.25rem; }
+.passcode-form { display: flex; gap: 0.6rem; }
+.passcode-form input { text-align: center; letter-spacing: 0.3em; }

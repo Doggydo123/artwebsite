@@ -19,7 +19,7 @@ export default function LoginScreen({ onLogin }) {
       <div className="hud-panel login-panel">
         <span className="hud-corner tl" /><span className="hud-corner tr" />
         <span className="hud-corner bl" /><span className="hud-corner br" />
-        <h1 className="brand"><span className="brand-glow">J.A.R.V.I.S.</span></h1>
+        <h1 className="brand"><span className="brand-glow">CLAUDIS</span></h1>
         <p className="brand-sub">Personal Operations Console</p>
         <form onSubmit={handleSubmit}>
           <label>
