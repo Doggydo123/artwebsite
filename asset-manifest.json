@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/artwebsite/static/css/main.1aa52b37.css",
-    "main.js": "/artwebsite/static/js/main.072ae153.js",
+    "main.css": "/artwebsite/static/css/main.9eec14d9.css",
+    "main.js": "/artwebsite/static/js/main.c637184b.js",
     "static/js/453.dc2e92b5.chunk.js": "/artwebsite/static/js/453.dc2e92b5.chunk.js",
     "index.html": "/artwebsite/index.html",
-    "main.1aa52b37.css.map": "/artwebsite/static/css/main.1aa52b37.css.map",
-    "main.072ae153.js.map": "/artwebsite/static/js/main.072ae153.js.map",
+    "main.9eec14d9.css.map": "/artwebsite/static/css/main.9eec14d9.css.map",
+    "main.c637184b.js.map": "/artwebsite/static/js/main.c637184b.js.map",
     "453.dc2e92b5.chunk.js.map": "/artwebsite/static/js/453.dc2e92b5.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.1aa52b37.css",
-    "static/js/main.072ae153.js"
+    "static/css/main.9eec14d9.css",
+    "static/js/main.c637184b.js"
   ]
 }
