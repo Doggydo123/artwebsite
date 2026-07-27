@@ -1,70 +1,84 @@
-# Getting Started with Create React App
+# J.A.R.V.I.S. Operations Console
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A private, tabbed dashboard deployed at
+[doggydo123.github.io/artwebsite](https://doggydo123.github.io/artwebsite),
+styled as a dark sci-fi HUD. Built with Create React App, hosted for free
+on GitHub Pages via `gh-pages`.
 
-## Available Scripts
+## Tabs
 
-In the project directory, you can run:
+- **Coast to Coast** — countdown to the March 12, 2028 departure date, plus
+  training milestones.
+- **Collecting** — categorized inventory dashboard (bullion, collectibles,
+  wine, etc.) with add/edit/delete, search/filter, and running value
+  estimates.
+- **Claude's Game System** — placeholder for a points system (pages read,
+  fitness, etc.) — scoring rules aren't defined yet.
 
-### `npm start`
+## Login gate
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+A username + access code gate sits in front of all three tabs. It's a
+client-side speed bump, not real security — there's nothing sensitive
+behind it, it just keeps casual visitors out.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Default login is `admin` / `changeme` — **change this before sharing the
+link.**
 
-### `npm test`
+1. Open the site, press F12 for devtools → Console tab, and run (replacing
+   `yourpassword`):
+   ```js
+   crypto.subtle.digest("SHA-256", new TextEncoder().encode("yourpassword"))
+     .then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join("")))
+   ```
+2. Copy the printed hex string into [src/config.js](src/config.js):
+   ```js
+   auth: {
+     username: "yourusername",
+     passwordHash: "<paste the hex string here>"
+   }
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Data persistence (Collecting tab)
 
-### `npm run build`
+Since this is a static site, edits live in the browser's `localStorage` by
+default — refreshing won't wipe them, but clearing browser data or
+switching devices will. For cross-device sync, connect Google Drive:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. [Google Cloud Console](https://console.cloud.google.com/) → new project
+   → **APIs & Services → Enabled APIs** → enable **Google Drive API**.
+2. **OAuth consent screen** → External → fill in app name/email → leave in
+   "Testing" mode and add your own Google account as a test user.
+3. **Credentials → Create Credentials → OAuth client ID** → Web
+   application → **Authorized JavaScript origins**:
+   `https://doggydo123.github.io` (and `http://localhost:3000` for local
+   testing) → copy the Client ID.
+4. Paste it into [src/config.js](src/config.js):
+   ```js
+   google: {
+     clientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
+     driveFileName: "jarvis-collecting-data.json"
+   }
+   ```
+5. Rebuild and redeploy. A **"Connect Drive Sync"** button appears on the
+   Collecting tab — it uses the restrictive `drive.file` scope, so the app
+   can only ever see the one JSON file it creates, nothing else in your
+   Drive.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Local development
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```sh
+npm install
+npm start
+```
 
-### `npm run eject`
+Opens at `http://localhost:3000`.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Deploying
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```sh
+npm run build
+npm run deploy
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+`npm run deploy` (via `gh-pages`) pushes the production build to the
+`gh-pages` branch, which is what GitHub Pages serves from for this repo.

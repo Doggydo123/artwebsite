@@ -1,24 +1,33 @@
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import Home from "./pages/Home";
-import Gallery from "./pages/Gallery";
-import Contact from "./pages/Contact";
-import ArtworkDetail from "./pages/ArtworkDetail";
+import { useAuth } from "./auth/useAuth";
+import LoginScreen from "./auth/LoginScreen";
+import TabNav from "./components/TabNav";
+import CoastToCoast from "./pages/CoastToCoast";
+import Collecting from "./pages/Collecting";
+import GameSystem from "./pages/GameSystem";
 
 function App() {
+  const { isAuthenticated, login, logout } = useAuth();
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={login} />;
+  }
+
   return (
     <Router>
-      <div className="site">
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/artwork/:id" element={<ArtworkDetail />} />
-        </Routes>
-        <Footer />
+      <div className="app-shell">
+        <div className="scanlines" />
+        <TabNav onLogout={logout} />
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<Navigate to="/coast-to-coast" replace />} />
+            <Route path="/coast-to-coast" element={<CoastToCoast />} />
+            <Route path="/collecting" element={<Collecting />} />
+            <Route path="/game" element={<GameSystem />} />
+            <Route path="*" element={<Navigate to="/coast-to-coast" replace />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );
