@@ -19,11 +19,11 @@ export const APP_CONFIG = {
   // See README.md for the deployment steps.
   sheets: {
     // The /exec URL you get after deploying the Apps Script as a Web App.
-    webAppUrl: "",
+    webAppUrl: "https://script.google.com/macros/s/AKfycbyAAVZTKjYGLBCsLflr0Rlt3JTuVTFI9jXlYN2Z1NKgLzfv8aR8p7mK0av_cLRm94yN/exec",
     // Must exactly match the ACCESS_KEY script property you set in the
     // Apps Script project. This is not a real secret — it ships in the
     // public JS bundle like everything else here — it just keeps the
     // sync endpoint from being casually stumbled on.
-    accessKey: ""
+    accessKey: "claudesaho3"
   }
 };
