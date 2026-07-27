@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { GAME_CATEGORIES, GAME_SEED, DEFAULT_RULES } from "../data/gameSeed";
 import { useSheetsSync } from "../lib/useSheetsSync";
 import { computeScores } from "../lib/gameScoring";
-import { useGamePasscode } from "../auth/useGamePasscode";
+import { useGamePasscode, changeGamePasscode } from "../auth/useGamePasscode";
 import GamePasscodeScreen from "../auth/GamePasscodeScreen";
 
 const LOCAL_KEY = "claudis_game_data";
@@ -10,8 +10,10 @@ const LOCAL_KEY = "claudis_game_data";
 function loadLocal() {
   const raw = localStorage.getItem(LOCAL_KEY);
   if (raw) return JSON.parse(raw);
-  return { ...GAME_SEED, updatedAt: 0 };
+  return { ...GAME_SEED, passcodeHash: null, updatedAt: 0 };
 }
+
+const emptyPasscodeForm = { current: "", next: "", confirm: "" };
 
 const CATEGORY_FIELD_CONFIG = {
   Gym: { valueLabel: null, showExerciseFields: true },
@@ -54,6 +56,9 @@ function GameDashboard({ onLock }) {
   const [form, setForm] = useState(emptyForm);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [rulesForm, setRulesForm] = useState(data.rules || DEFAULT_RULES);
+  const [passcodeModalOpen, setPasscodeModalOpen] = useState(false);
+  const [passcodeForm, setPasscodeForm] = useState(emptyPasscodeForm);
+  const [passcodeMessage, setPasscodeMessage] = useState(null); // { type: "error"|"success", text }
 
   const sheetsSync = useSheetsSync({
     resource: "game",
@@ -61,7 +66,12 @@ function GameDashboard({ onLock }) {
       setDataState((local) => {
         const remoteIsNewer = (remote.updatedAt || 0) > (local.updatedAt || 0);
         if (remoteIsNewer) {
-          const merged = { entries: remote.entries || [], rules: remote.rules || DEFAULT_RULES, updatedAt: remote.updatedAt };
+          const merged = {
+            entries: remote.entries || [],
+            rules: remote.rules || DEFAULT_RULES,
+            passcodeHash: remote.passcodeHash || local.passcodeHash || null,
+            updatedAt: remote.updatedAt
+          };
           setRulesForm(merged.rules);
           return merged;
         }
@@ -142,6 +152,32 @@ function GameDashboard({ onLock }) {
     setRulesOpen(false);
   }
 
+  function openPasscodeModal() {
+    setPasscodeForm(emptyPasscodeForm);
+    setPasscodeMessage(null);
+    setPasscodeModalOpen(true);
+  }
+
+  async function handlePasscodeSubmit(e) {
+    e.preventDefault();
+    if (passcodeForm.next !== passcodeForm.confirm) {
+      setPasscodeMessage({ type: "error", text: "New passcode and confirmation don't match." });
+      return;
+    }
+    if (!passcodeForm.next) {
+      setPasscodeMessage({ type: "error", text: "New passcode can't be empty." });
+      return;
+    }
+    const result = await changeGamePasscode(passcodeForm.current, passcodeForm.next);
+    if (!result.ok) {
+      setPasscodeMessage({ type: "error", text: result.error });
+      return;
+    }
+    persist({ ...data, passcodeHash: result.newHash });
+    setPasscodeMessage({ type: "success", text: "Passcode updated." });
+    setPasscodeForm(emptyPasscodeForm);
+  }
+
   const sheetsLabels = {
     synced: "Sheet Synced",
     syncing: "Saving to Sheet…",
@@ -162,6 +198,7 @@ function GameDashboard({ onLock }) {
             {sheetsLabels[sheetsSync.status] || "Sheet Sync"}
           </span>
           <button className="btn btn-ghost" onClick={() => setRulesOpen(true)}>Scoring Rules</button>
+          <button className="btn btn-ghost" onClick={openPasscodeModal}>Change Passcode</button>
           <button className="btn btn-ghost" onClick={onLock}>Lock</button>
         </div>
       </div>
@@ -315,6 +352,40 @@ function GameDashboard({ onLock }) {
                 <div className="modal-actions-right">
                   <button type="button" className="btn btn-ghost" onClick={() => setRulesOpen(false)}>Cancel</button>
                   <button type="submit" className="btn btn-primary">Save Rules</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {passcodeModalOpen && (
+        <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && setPasscodeModalOpen(false)}>
+          <div className="hud-panel modal-panel">
+            <span className="hud-corner tl" /><span className="hud-corner tr" />
+            <span className="hud-corner bl" /><span className="hud-corner br" />
+            <h2 className="panel-title">Change Passcode</h2>
+            <form onSubmit={handlePasscodeSubmit}>
+              <label>
+                <span>Current Passcode</span>
+                <input type="password" required value={passcodeForm.current} onChange={(e) => setPasscodeForm({ ...passcodeForm, current: e.target.value })} />
+              </label>
+              <label>
+                <span>New Passcode</span>
+                <input type="password" required value={passcodeForm.next} onChange={(e) => setPasscodeForm({ ...passcodeForm, next: e.target.value })} />
+              </label>
+              <label>
+                <span>Confirm New Passcode</span>
+                <input type="password" required value={passcodeForm.confirm} onChange={(e) => setPasscodeForm({ ...passcodeForm, confirm: e.target.value })} />
+              </label>
+              {passcodeMessage && (
+                <p className={passcodeMessage.type === "error" ? "login-error" : "passcode-success"}>{passcodeMessage.text}</p>
+              )}
+              <div className="modal-actions">
+                <span />
+                <div className="modal-actions-right">
+                  <button type="button" className="btn btn-ghost" onClick={() => setPasscodeModalOpen(false)}>Close</button>
+                  <button type="submit" className="btn btn-primary">Update Passcode</button>
                 </div>
               </div>
             </form>

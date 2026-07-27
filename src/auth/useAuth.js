@@ -1,13 +1,9 @@
 import { useCallback, useState } from "react";
 import { APP_CONFIG } from "../config";
+import { sha256Hex } from "../lib/hash";
 
 const SESSION_KEY = "claudis_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
-
-async function sha256Hex(text) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 function readSession() {
   const raw = localStorage.getItem(SESSION_KEY);

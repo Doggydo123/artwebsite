@@ -49,7 +49,16 @@ link.**
 ### Claude's Games passcode
 
 The Games tab has a second, independent passcode (no username) gating just
-that tab — set it the same way, default passcode is `1234`:
+that tab, default `1234`. Once inside, there's a **"Change Passcode"**
+button in the tab header — enter the current passcode plus a new one and
+it takes effect immediately, no config.js edit or redeploy needed:
+
+- If Google Sheets sync is set up (see below), the new passcode syncs
+  there too, so it works from any device.
+- Otherwise it's cached in that browser's `localStorage` only.
+
+To set the *original* default (e.g. before handing the site over the
+first time), edit config.js the same way as the main password:
 
 ```js
 game: {
@@ -114,9 +123,10 @@ are what actually keep casual visitors out.
 
 The spreadsheet gets: **Items** + **Meta** (Collecting), **Brews** +
 **BrewReadings** + **BrewMeta** (Brewing), and **GameEntries** +
-**GameRules** + **GameMeta** (Claude's Games). Each `*Meta` sheet holds a
-single `updatedAt` timestamp used to decide whether the sheet or a
-browser's local copy is newer when they disagree.
+**GameRules** + **GameMeta** (Claude's Games). Each `*Meta` sheet holds an
+`updatedAt` timestamp (row 1) used to decide whether the sheet or a
+browser's local copy is newer when they disagree; **GameMeta** also holds
+the current passcode hash (row 2) once it's been changed in-app.
 
 ## Local development
 

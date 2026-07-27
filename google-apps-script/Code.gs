@@ -56,6 +56,7 @@ function doGet(e) {
       return jsonResponse({
         entries: readGameEntries(sheet),
         rules: readRules(ss),
+        passcodeHash: readGamePasscodeHash(ss),
         updatedAt: readMetaValue(ss, GAME_META_SHEET)
       });
     }
@@ -89,6 +90,7 @@ function doPost(e) {
       const sheet = getOrCreateSheet(ss, GAME_ENTRIES_SHEET, GAME_ENTRY_HEADERS);
       writeGameEntries(sheet, body.entries || []);
       if (body.rules) writeRules(ss, body.rules);
+      if (body.passcodeHash) writeGamePasscodeHash(ss, body.passcodeHash);
       writeMetaValue(ss, GAME_META_SHEET, updatedAt);
       return jsonResponse({ ok: true, updatedAt });
     }
@@ -184,6 +186,27 @@ function writeGameEntries(sheet, entries) {
   // spreadsheet's timezone (e.g. becomes "2026-07-26T12:00:00.000Z").
   sheet.getRange(2, 3, rows.length, 1).setNumberFormat("@");
   sheet.getRange(2, 1, rows.length, GAME_ENTRY_HEADERS.length).setValues(rows);
+}
+
+// ---- Claude's Games: passcode hash (lets the in-app "Change Passcode"
+// form sync a new passcode across devices, via the same GameMeta sheet
+// that holds the updatedAt timestamp) ----
+
+function readGamePasscodeHash(ss) {
+  const sheet = ss.getSheetByName(GAME_META_SHEET);
+  if (!sheet) return null;
+  const value = sheet.getRange("B2").getValue();
+  return value || null;
+}
+
+function writeGamePasscodeHash(ss, hash) {
+  let sheet = ss.getSheetByName(GAME_META_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(GAME_META_SHEET);
+    sheet.getRange("A1").setValue("updatedAt");
+  }
+  sheet.getRange("A2").setValue("passcodeHash");
+  sheet.getRange("B2").setValue(hash);
 }
 
 // ---- Claude's Games: scoring rules (key/value rows, editable in-sheet too) ----

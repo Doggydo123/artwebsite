@@ -137,6 +137,7 @@ input:focus, select:focus, textarea:focus {
 .login-panel form { display: flex; flex-direction: column; gap: 1.1rem; text-align: left; }
 .login-panel label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
 .login-error { color: var(--warn); font-size: 0.75rem; text-align: center; letter-spacing: 0.05em; margin: 0.5rem 0 0; }
+.passcode-success { color: var(--good); font-size: 0.75rem; text-align: center; letter-spacing: 0.05em; margin: 0.5rem 0 0; }
 
 /* ---------- Top bar / tab nav ---------- */
 .topbar {

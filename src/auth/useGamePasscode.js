@@ -1,13 +1,12 @@
 import { useCallback, useState } from "react";
 import { APP_CONFIG } from "../config";
+import { sha256Hex } from "../lib/hash";
 
 const SESSION_KEY = "claudis_game_session";
+// Locally cached override so a passcode change works even without Sheets
+// sync configured, and as a fast fallback if the Sheet fetch fails.
+const OVERRIDE_KEY = "claudis_game_passcode_override";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
-
-async function sha256Hex(text) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 function readSession() {
   const raw = localStorage.getItem(SESSION_KEY);
@@ -20,16 +19,36 @@ function readSession() {
   }
 }
 
-// A second, independent passcode gate for the Claude's Games tab —
-// separate from the main site login, so only Claude can get past it
-// even though everyone who knows the main password can see the tab
-// exists.
+async function fetchRemotePasscodeHash() {
+  const { webAppUrl, accessKey } = APP_CONFIG.sheets || {};
+  if (!webAppUrl || !accessKey) return null;
+  try {
+    const res = await fetch(`${webAppUrl}?key=${encodeURIComponent(accessKey)}&resource=game`);
+    const json = await res.json();
+    return json.passcodeHash || null;
+  } catch {
+    return null;
+  }
+}
+
+// The passcode currently in effect: whatever's stored in the Sheet (synced
+// across devices) takes priority, then a locally-cached override, then the
+// hardcoded default in config.js.
+async function effectivePasscodeHash() {
+  const remote = await fetchRemotePasscodeHash();
+  if (remote) return remote;
+  const local = localStorage.getItem(OVERRIDE_KEY);
+  if (local) return local;
+  return APP_CONFIG.game.auth.passcodeHash;
+}
+
 export function useGamePasscode() {
   const [unlocked, setUnlocked] = useState(readSession);
 
   const unlock = useCallback(async (passcode) => {
     const hash = await sha256Hex(passcode);
-    if (hash === APP_CONFIG.game.auth.passcodeHash) {
+    const expected = await effectivePasscodeHash();
+    if (hash === expected) {
       localStorage.setItem(SESSION_KEY, JSON.stringify({ expires: Date.now() + SESSION_TTL_MS }));
       setUnlocked(true);
       return true;
@@ -43,4 +62,19 @@ export function useGamePasscode() {
   }, []);
 
   return { unlocked, unlock, lock };
+}
+
+// Called from inside the unlocked dashboard's "Change Passcode" form.
+// Returns { ok: true, newHash } on success (caller is responsible for
+// syncing newHash into the persisted game data so it reaches the Sheet),
+// or { ok: false, error } if the current passcode didn't match.
+export async function changeGamePasscode(currentPasscode, newPasscode) {
+  const enteredHash = await sha256Hex(currentPasscode);
+  const expected = await effectivePasscodeHash();
+  if (enteredHash !== expected) {
+    return { ok: false, error: "Current passcode is incorrect." };
+  }
+  const newHash = await sha256Hex(newPasscode);
+  localStorage.setItem(OVERRIDE_KEY, newHash);
+  return { ok: true, newHash };
 }
