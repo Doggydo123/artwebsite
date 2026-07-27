@@ -13,8 +13,8 @@ export const APP_CONFIG = {
     passwordHash: "057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86"
   },
 
-  // Optional: Google Sheets sync for the Collecting, Brewing, and
-  // Claude's Games tabs, all backed by the Apps Script in
+  // Optional: Google Sheets sync for the Collecting, Brewing, Running,
+  // and Claude's Games tabs, all backed by the Apps Script in
   // google-apps-script/Code.gs. Leave webAppUrl empty to stay on
   // local-storage-only — every tab still works fine without it.
   // See README.md for the deployment steps.

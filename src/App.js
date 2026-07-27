@@ -6,6 +6,7 @@ import TabNav from "./components/TabNav";
 import CoastToCoast from "./pages/CoastToCoast";
 import Collecting from "./pages/Collecting";
 import Brewing from "./pages/Brewing";
+import Running from "./pages/Running";
 import GameSystem from "./pages/GameSystem";
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/coast-to-coast" element={<CoastToCoast />} />
             <Route path="/collecting" element={<Collecting />} />
             <Route path="/brewing" element={<Brewing />} />
+            <Route path="/running" element={<Running />} />
             <Route path="/game" element={<GameSystem />} />
             <Route path="*" element={<Navigate to="/coast-to-coast" replace />} />
           </Routes>

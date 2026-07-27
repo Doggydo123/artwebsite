@@ -18,6 +18,20 @@ on GitHub Pages via `gh-pages`.
   gravity-reading log per batch. Days since pitch, % through estimated
   fermentation, estimated bottling/drink-ready dates, and current ABV are
   all computed live from the latest reading you log.
+- **Running** — training tracker for two runners ("Me" and "Dominic",
+  switchable via tabs) working toward one goal: 30km of off-track, uphill
+  running, comfortably. Log **Flat Running** (km), **Hill Running**
+  (elevation gain — weighted heaviest, since vertical gain is the specific
+  limiter for this goal), **Long Run** (km, weighted above flat since
+  time-on-feet distance is the other limiter), and **Gym / Strength**
+  (sessions). Each category gets its own level plus an overall **30K
+  Readiness** level, tuned beginner-friendly (level 1 needs just 20 pts).
+  Unlike the other tabs, points **decay over time** (configurable
+  half-life, default 14 days) — go quiet and a level drops, modeling
+  real detraining rather than a number that only ever climbs. Also shows
+  longest run so far and elevation gained in the last 30 days as plain
+  practical readouts. All of it — point rates, decay half-life, the
+  leveling curve — is editable in "Training Rules".
 - **Claude's Games** — a personal points system: log Gym sessions, Steps,
   Sleep, Pages Read, and Spending, and see them converted into a score
   using editable scoring rules. Categories roll up into four stats —
@@ -84,7 +98,7 @@ Cumulative Level. A stat's points are just the sum of its categories'
 points from the score breakdown above it — same live-computed numbers,
 so deleting a logged entry can lower a level, same as it lowers a score.
 
-## Data persistence (Collecting + Brewing + Claude's Games)
+## Data persistence (Collecting + Brewing + Running + Claude's Games)
 
 Since this is a static site, edits live in the browser's `localStorage` by
 default — refreshing won't wipe them, but clearing browser data or
@@ -138,11 +152,12 @@ on by accident; it isn't a substitute for the login/passcode gates, which
 are what actually keep casual visitors out.
 
 The spreadsheet gets: **Items** + **Meta** (Collecting), **Brews** +
-**BrewReadings** + **BrewMeta** (Brewing), and **GameEntries** +
-**GameRules** + **GameMeta** (Claude's Games). Each `*Meta` sheet holds an
-`updatedAt` timestamp (row 1) used to decide whether the sheet or a
-browser's local copy is newer when they disagree; **GameMeta** also holds
-the current passcode hash (row 2) once it's been changed in-app.
+**BrewReadings** + **BrewMeta** (Brewing), **RunEntries** + **RunRules** +
+**RunMeta** (Running), and **GameEntries** + **GameRules** + **GameMeta**
+(Claude's Games). Each `*Meta` sheet holds an `updatedAt` timestamp (row 1)
+used to decide whether the sheet or a browser's local copy is newer when
+they disagree; **GameMeta** also holds the current passcode hash (row 2)
+once it's been changed in-app.
 
 ## Local development
 

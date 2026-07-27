@@ -5,6 +5,7 @@ const TABS = [
   { to: "/coast-to-coast", label: "Coast to Coast" },
   { to: "/collecting", label: "Collecting" },
   { to: "/brewing", label: "Brewing" },
+  { to: "/running", label: "Running" },
   { to: "/game", label: "Claude's Games" }
 ];
 

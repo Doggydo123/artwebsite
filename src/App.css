@@ -355,6 +355,35 @@ input:focus, select:focus, textarea:focus {
   padding-top: 0.75rem;
 }
 
+/* ---------- Running ---------- */
+.runner-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.runner-tab {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.2rem;
+  border-radius: 3px;
+  border: 1px solid var(--accent-dim);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.runner-tab:hover { color: var(--accent); border-color: var(--accent); }
+.runner-tab.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 10px rgba(53, 240, 255, 0.25); }
+
+.readiness-stats { display: flex; gap: 2rem; flex-wrap: wrap; }
+.readiness-stat { text-align: center; min-width: 140px; }
+.readiness-stat-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(53, 240, 255, 0.4);
+}
+.readiness-stat-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+
 .score-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 2rem; }
 .score-total { text-align: center; min-width: 140px; }
 .score-total-value {

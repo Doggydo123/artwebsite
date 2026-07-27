@@ -1,14 +1,14 @@
 // ============================================================
-// CLAUDIS — Google Sheets backend for the Collecting tab, the Brewing
-// tab, and the Claude's Games tab.
+// CLAUDIS — Google Sheets backend for the Collecting, Brewing, Running,
+// and Claude's Games tabs.
 //
 // Deploy this bound to a Google Sheet (Extensions > Apps Script).
 // See README.md in the repo root for full setup steps.
 //
-// Every request carries a `resource` of "collecting", "brewing", or
-// "game" (defaults to "collecting" for backwards compatibility with the
-// original deployment) so one script + one sheet can serve all tabs,
-// each in their own tabs within the spreadsheet.
+// Every request carries a `resource` of "collecting", "brewing",
+// "running", or "game" (defaults to "collecting" for backwards
+// compatibility with the original deployment) so one script + one sheet
+// can serve all tabs, each in their own tabs within the spreadsheet.
 // ============================================================
 
 const ACCESS_KEY_PROPERTY = "ACCESS_KEY";
@@ -46,6 +46,21 @@ const BREW_HEADERS = [
 ];
 const BREW_READING_HEADERS = ["id", "brewId", "date", "gravity", "notes"];
 
+// ---- Running ----
+const RUN_ENTRIES_SHEET = "RunEntries";
+const RUN_META_SHEET = "RunMeta";
+const RUN_RULES_SHEET = "RunRules";
+const RUN_ENTRY_HEADERS = ["id", "person", "category", "date", "distanceKm", "elevationGainM", "durationMin", "notes"];
+const DEFAULT_RUN_RULES = {
+  pointsPerFlatKm: 1,
+  pointsPerHillMeter: 0.05,
+  pointsPerLongRunKm: 1.5,
+  pointsPerGymSession: 8,
+  decayHalfLifeDays: 14,
+  levelBase: 20,
+  levelExponent: 1.5
+};
+
 function doGet(e) {
   try {
     const params = (e && e.parameter) || {};
@@ -70,6 +85,15 @@ function doGet(e) {
         brand: readBrand(ss),
         brews: readBrews(brewSheet, readingsSheet),
         updatedAt: readMetaValue(ss, BREW_META_SHEET)
+      });
+    }
+
+    if (resource === "running") {
+      const sheet = getOrCreateSheet(ss, RUN_ENTRIES_SHEET, RUN_ENTRY_HEADERS);
+      return jsonResponse({
+        entries: readRunEntries(sheet),
+        rules: readRunRules(ss),
+        updatedAt: readMetaValue(ss, RUN_META_SHEET)
       });
     }
 
@@ -103,6 +127,14 @@ function doPost(e) {
       writeBrews(brewSheet, readingsSheet, body.brews || []);
       if (body.brand) writeBrand(ss, body.brand);
       writeMetaValue(ss, BREW_META_SHEET, updatedAt);
+      return jsonResponse({ ok: true, updatedAt });
+    }
+
+    if (resource === "running") {
+      const sheet = getOrCreateSheet(ss, RUN_ENTRIES_SHEET, RUN_ENTRY_HEADERS);
+      writeRunEntries(sheet, body.entries || []);
+      if (body.rules) writeRunRules(ss, body.rules);
+      writeMetaValue(ss, RUN_META_SHEET, updatedAt);
       return jsonResponse({ ok: true, updatedAt });
     }
 
@@ -332,6 +364,62 @@ function writeBrand(ss, brand) {
   }
   sheet.getRange("A2").setValue("brand");
   sheet.getRange("B2").setValue(brand);
+}
+
+// ---- Running: entries ----
+
+function readRunEntries(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const values = sheet.getRange(2, 1, lastRow - 1, RUN_ENTRY_HEADERS.length).getValues();
+  return values
+    .filter((row) => row[0] !== "")
+    .map((row) => ({
+      id: String(row[0]),
+      person: row[1],
+      category: row[2],
+      date: row[3],
+      distanceKm: row[4] === "" ? null : Number(row[4]),
+      elevationGainM: row[5] === "" ? null : Number(row[5]),
+      durationMin: row[6] === "" ? null : Number(row[6]),
+      notes: row[7]
+    }));
+}
+
+function writeRunEntries(sheet, entries) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, RUN_ENTRY_HEADERS.length).clearContent();
+  if (!entries.length) return;
+  const rows = entries.map((e) => [
+    e.id, e.person, e.category, e.date, e.distanceKm ?? "", e.elevationGainM ?? "", e.durationMin ?? "", e.notes ?? ""
+  ]);
+  // Keep "date" as plain text — otherwise Sheets auto-converts it to a
+  // Date cell and reading it back shifts by the spreadsheet's timezone.
+  sheet.getRange(2, 4, rows.length, 1).setNumberFormat("@");
+  sheet.getRange(2, 1, rows.length, RUN_ENTRY_HEADERS.length).setValues(rows);
+}
+
+// ---- Running: training + leveling rules (key/value rows, editable in-sheet too) ----
+
+function readRunRules(ss) {
+  const sheet = ss.getSheetByName(RUN_RULES_SHEET);
+  if (!sheet) return DEFAULT_RUN_RULES;
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 1) return DEFAULT_RUN_RULES;
+  const values = sheet.getRange(1, 1, lastRow, 2).getValues();
+  const rules = {};
+  values.forEach((row) => {
+    if (row[0]) rules[row[0]] = Number(row[1]);
+  });
+  return Object.keys(rules).length ? rules : DEFAULT_RUN_RULES;
+}
+
+function writeRunRules(ss, rules) {
+  let sheet = ss.getSheetByName(RUN_RULES_SHEET);
+  if (!sheet) sheet = ss.insertSheet(RUN_RULES_SHEET);
+  const merged = Object.assign({}, DEFAULT_RUN_RULES, rules);
+  const keys = Object.keys(merged);
+  sheet.getRange(1, 1, keys.length, 2).setValues(keys.map((k) => [k, merged[k]]));
 }
 
 // ---- Shared: meta timestamp per resource ----
