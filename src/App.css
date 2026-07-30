@@ -460,6 +460,7 @@ input:focus, select:focus, textarea:focus {
 .brew-progress-row { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
 .brew-progress-bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(53, 240, 255, 0.08); border: 1px solid var(--accent-dim); overflow: hidden; }
 .brew-progress-fill { height: 100%; background: var(--accent); box-shadow: 0 0 8px rgba(53, 240, 255, 0.6); }
+.brew-progress-fill-gravity { background: var(--good); box-shadow: 0 0 8px rgba(77, 255, 136, 0.6); }
 .brew-progress-label { font-size: 0.75rem; color: var(--text-dim); white-space: nowrap; }
 
 .brew-abv-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; font-size: 0.85rem; margin-bottom: 1rem; }

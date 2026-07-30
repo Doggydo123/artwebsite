@@ -7,6 +7,9 @@ function round1(n) {
 export function computeScores(entries, rules) {
   const byCategory = (cat) => entries.filter((e) => e.category === cat);
 
+  const exerciseSessions = byCategory("Exercise").length;
+  const exercisePoints = exerciseSessions * rules.pointsPerGymSession;
+
   const stepsTotal = byCategory("Steps").reduce((s, e) => s + (Number(e.value) || 0), 0);
   const stepsPoints = Math.floor(stepsTotal / (rules.stepsPerPoint || 1));
 
@@ -16,6 +19,16 @@ export function computeScores(entries, rules) {
 
   const pagesTotal = byCategory("Pages Read").reduce((s, e) => s + (Number(e.value) || 0), 0);
   const pagesPoints = pagesTotal * rules.pointsPerPage;
+
+  const waterTotal = byCategory("Water").reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const waterPoints = waterTotal * (rules.pointsPerWaterLitre || 0);
+
+  const screentimeEntries = byCategory("Screentime");
+  const screentimePoints = screentimeEntries.reduce((s, e) => {
+    const hours = Number(e.value) || 0;
+    const under = Math.max(0, (rules.screentimeTargetHours || 0) - hours);
+    return s + under * (rules.pointsPerScreentimeHourUnder8 || 0);
+  }, 0);
 
   const spendByDate = {};
   byCategory("Spending").forEach((e) => {
@@ -28,15 +41,18 @@ export function computeScores(entries, rules) {
     if (under > 0) spendingPoints += under * rules.pointsPerDollarUnderBudget;
   });
 
-  const gymSessions = byCategory("Gym").length;
-  const gymPoints = gymSessions * rules.pointsPerGymSession;
+  const savingsTotal = byCategory("Savings").reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const savingsPoints = savingsTotal * (rules.pointsPerSavingsDollar || 0);
 
   const perCategory = [
-    { cat: "Gym", points: round1(gymPoints), detail: `${gymSessions} session${gymSessions === 1 ? "" : "s"}` },
+    { cat: "Exercise", points: round1(exercisePoints), detail: `${exerciseSessions} session${exerciseSessions === 1 ? "" : "s"}` },
     { cat: "Steps", points: round1(stepsPoints), detail: `${stepsTotal.toLocaleString()} steps` },
     { cat: "Sleep", points: round1(sleepPoints), detail: `${goodNights} good night${goodNights === 1 ? "" : "s"}` },
     { cat: "Pages Read", points: round1(pagesPoints), detail: `${pagesTotal} pages` },
-    { cat: "Spending", points: round1(spendingPoints), detail: `${daysLogged} day${daysLogged === 1 ? "" : "s"} logged` }
+    { cat: "Water", points: round1(waterPoints), detail: `${waterTotal}L` },
+    { cat: "Screentime", points: round1(screentimePoints), detail: `${screentimeEntries.length} day${screentimeEntries.length === 1 ? "" : "s"} logged` },
+    { cat: "Spending", points: round1(spendingPoints), detail: `${daysLogged} day${daysLogged === 1 ? "" : "s"} logged` },
+    { cat: "Savings", points: round1(savingsPoints), detail: `NZ$${savingsTotal.toLocaleString()} saved` }
   ];
 
   const total = round1(perCategory.reduce((s, c) => s + c.points, 0));

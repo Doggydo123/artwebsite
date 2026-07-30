@@ -22,27 +22,32 @@ function loadLocal() {
 const emptyPasscodeForm = { current: "", next: "", confirm: "" };
 
 const CATEGORY_FIELD_CONFIG = {
-  Gym: { valueLabel: null, showExerciseFields: true },
-  Steps: { valueLabel: "Steps", showExerciseFields: false },
-  Sleep: { valueLabel: "Hours Slept", showExerciseFields: false },
-  "Pages Read": { valueLabel: "Pages", showExerciseFields: false },
-  Spending: { valueLabel: "Amount (NZD)", showExerciseFields: false }
+  Exercise: { valueLabel: "Duration (min)", showActivityField: true },
+  Steps: { valueLabel: "Steps" },
+  Sleep: { valueLabel: "Hours Slept" },
+  "Pages Read": { valueLabel: "Pages" },
+  Water: { valueLabel: "Litres" },
+  Screentime: { valueLabel: "Hours" },
+  Spending: { valueLabel: "Amount (NZD)" },
+  Savings: { valueLabel: "Amount Saved/Invested (NZD)" }
 };
 
-const emptyForm = { id: "", category: "", date: "", exercise: "", sets: "", reps: "", weight: "", value: "", notes: "" };
+const emptyForm = { id: "", category: "", date: "", exercise: "", value: "", notes: "" };
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
 function entryDetail(entry) {
-  if (entry.category === "Gym") {
+  if (entry.category === "Exercise") {
     const parts = [entry.exercise].filter(Boolean);
-    if (entry.sets || entry.reps) parts.push(`${entry.sets ?? "—"}x${entry.reps ?? "—"}`);
-    if (entry.weight) parts.push(`${entry.weight}kg`);
-    return parts.join(" · ");
+    if (entry.value) parts.push(`${entry.value}min`);
+    return parts.join(" · ") || "Session logged";
   }
-  const unit = { Steps: "steps", Sleep: "hrs", "Pages Read": "pages", Spending: "NZD" }[entry.category] || "";
+  const unit = {
+    Steps: "steps", Sleep: "hrs", "Pages Read": "pages", Water: "L",
+    Screentime: "hrs", Spending: "NZD", Savings: "NZD"
+  }[entry.category] || "";
   return `${entry.value ?? "—"} ${unit}`;
 }
 
@@ -123,9 +128,6 @@ function GameDashboard({ onLock }) {
       category: entry.category,
       date: entry.date,
       exercise: entry.exercise || "",
-      sets: entry.sets ?? "",
-      reps: entry.reps ?? "",
-      weight: entry.weight ?? "",
       value: entry.value ?? "",
       notes: entry.notes || ""
     });
@@ -144,9 +146,6 @@ function GameDashboard({ onLock }) {
       category: form.category,
       date: form.date,
       exercise: form.exercise.trim(),
-      sets: form.sets === "" ? null : Number(form.sets),
-      reps: form.reps === "" ? null : Number(form.reps),
-      weight: form.weight === "" ? null : Number(form.weight),
       value: form.value === "" ? null : Number(form.value),
       notes: form.notes.trim()
     };
@@ -313,31 +312,21 @@ function GameDashboard({ onLock }) {
                 <input type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
               </label>
 
-              {fieldConfig.showExerciseFields ? (
-                <>
-                  <label>
-                    <span>Exercise</span>
-                    <input required value={form.exercise} onChange={(e) => setForm({ ...form, exercise: e.target.value })} />
-                  </label>
-                  <div className="form-row">
-                    <label>
-                      <span>Sets</span>
-                      <input type="number" min="0" step="1" value={form.sets} onChange={(e) => setForm({ ...form, sets: e.target.value })} />
-                    </label>
-                    <label>
-                      <span>Reps</span>
-                      <input type="number" min="0" step="1" value={form.reps} onChange={(e) => setForm({ ...form, reps: e.target.value })} />
-                    </label>
-                    <label>
-                      <span>Weight (kg)</span>
-                      <input type="number" min="0" step="0.5" value={form.weight} onChange={(e) => setForm({ ...form, weight: e.target.value })} />
-                    </label>
-                  </div>
-                </>
-              ) : (
+              {fieldConfig.showActivityField && (
+                <label>
+                  <span>Activity</span>
+                  <input required value={form.exercise} onChange={(e) => setForm({ ...form, exercise: e.target.value })} />
+                </label>
+              )}
+              {fieldConfig.valueLabel && (
                 <label>
                   <span>{fieldConfig.valueLabel}</span>
-                  <input type="number" min="0" step="0.1" required value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} />
+                  <input
+                    type="number" min="0" step="0.1"
+                    required={!fieldConfig.showActivityField}
+                    value={form.value}
+                    onChange={(e) => setForm({ ...form, value: e.target.value })}
+                  />
                 </label>
               )}
 
@@ -384,6 +373,20 @@ function GameDashboard({ onLock }) {
                 <span>Points per page read</span>
                 <input type="number" min="0" step="0.1" value={rulesForm.pointsPerPage} onChange={(e) => setRulesForm({ ...rulesForm, pointsPerPage: Number(e.target.value) })} />
               </label>
+              <label>
+                <span>Points per litre of water</span>
+                <input type="number" min="0" step="0.1" value={rulesForm.pointsPerWaterLitre} onChange={(e) => setRulesForm({ ...rulesForm, pointsPerWaterLitre: Number(e.target.value) })} />
+              </label>
+              <div className="form-row">
+                <label>
+                  <span>Screentime target (hrs)</span>
+                  <input type="number" min="0" step="0.5" value={rulesForm.screentimeTargetHours} onChange={(e) => setRulesForm({ ...rulesForm, screentimeTargetHours: Number(e.target.value) })} />
+                </label>
+                <label>
+                  <span>Points per hour under target</span>
+                  <input type="number" min="0" step="0.1" value={rulesForm.pointsPerScreentimeHourUnder8} onChange={(e) => setRulesForm({ ...rulesForm, pointsPerScreentimeHourUnder8: Number(e.target.value) })} />
+                </label>
+              </div>
               <div className="form-row">
                 <label>
                   <span>Daily budget (NZD)</span>
@@ -395,7 +398,11 @@ function GameDashboard({ onLock }) {
                 </label>
               </div>
               <label>
-                <span>Points per gym session</span>
+                <span>Points per $ saved/invested</span>
+                <input type="number" min="0" step="0.01" value={rulesForm.pointsPerSavingsDollar} onChange={(e) => setRulesForm({ ...rulesForm, pointsPerSavingsDollar: Number(e.target.value) })} />
+              </label>
+              <label>
+                <span>Points per exercise session</span>
                 <input type="number" min="0" value={rulesForm.pointsPerGymSession} onChange={(e) => setRulesForm({ ...rulesForm, pointsPerGymSession: Number(e.target.value) })} />
               </label>
               <p className="rules-section-label">Leveling</p>

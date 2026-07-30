@@ -48,6 +48,28 @@ export function looksStable(brew) {
   return Math.abs(Number(sorted[0].gravity) - Number(sorted[1].gravity)) <= 0.002;
 }
 
+// How far the latest gravity reading has dropped from OG toward the
+// expected FG (midpoint of the low/high range), as a percentage — the
+// actual measured progress, as opposed to fermentationPercent() above
+// which is just an estimate based on the calendar.
+export function gravityCompletionPercent(brew) {
+  const latest = latestReading(brew);
+  if (!latest || latest.gravity === null || latest.gravity === undefined) return null;
+  const fgMid = (Number(brew.fgLow) + Number(brew.fgHigh)) / 2;
+  const totalDrop = Number(brew.og) - fgMid;
+  if (totalDrop <= 0) return null;
+  const currentDrop = Number(brew.og) - Number(latest.gravity);
+  return Math.max(0, Math.min(100, (currentDrop / totalDrop) * 100));
+}
+
+// Latest reading is at or below the expected FG range — a stronger
+// signal than looksStable() that fermentation has actually finished.
+export function atTargetFg(brew) {
+  const latest = latestReading(brew);
+  if (!latest || latest.gravity === null || latest.gravity === undefined) return false;
+  return Number(latest.gravity) <= Number(brew.fgHigh);
+}
+
 export function formatRange(low, high, digits) {
   if (low === null || low === undefined || low === "") return "—";
   const lowNum = Number(low);

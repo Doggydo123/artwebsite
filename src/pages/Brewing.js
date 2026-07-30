@@ -9,6 +9,8 @@ import {
   estDrinkReadyDate,
   currentAbv,
   looksStable,
+  gravityCompletionPercent,
+  atTargetFg,
   formatRange,
   formatDate
 } from "../lib/brewCalc";
@@ -269,7 +271,9 @@ export default function Brewing() {
 function BrewCard({ brew, onEdit, onStatusChange, onLogReading }) {
   const abv = useMemo(() => currentAbv(brew), [brew]);
   const pct = useMemo(() => fermentationPercent(brew), [brew]);
+  const gravityPct = useMemo(() => gravityCompletionPercent(brew), [brew]);
   const stable = useMemo(() => looksStable(brew), [brew]);
+  const atTarget = useMemo(() => atTargetFg(brew), [brew]);
   const readings = [...(brew.readings || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
@@ -307,8 +311,15 @@ function BrewCard({ brew, onEdit, onStatusChange, onLogReading }) {
 
       <div className="brew-progress-row">
         <div className="brew-progress-bar"><div className="brew-progress-fill" style={{ width: `${Math.min(100, pct)}%` }} /></div>
-        <span className="brew-progress-label">{pct.toFixed(0)}% through est. fermentation</span>
+        <span className="brew-progress-label">{pct.toFixed(0)}% through est. fermentation (by date)</span>
       </div>
+
+      {gravityPct !== null && (
+        <div className="brew-progress-row">
+          <div className="brew-progress-bar"><div className="brew-progress-fill brew-progress-fill-gravity" style={{ width: `${gravityPct}%` }} /></div>
+          <span className="brew-progress-label">{gravityPct.toFixed(0)}% complete (by hydrometer reading)</span>
+        </div>
+      )}
 
       <div className="brew-abv-row">
         {abv !== null ? (
@@ -316,6 +327,7 @@ function BrewCard({ brew, onEdit, onStatusChange, onLogReading }) {
         ) : (
           <span className="brew-no-readings">No gravity readings logged yet</span>
         )}
+        {atTarget && <span className="brew-stable-badge">At target FG</span>}
         {stable && <span className="brew-stable-badge">Readings stable — ready to bottle?</span>}
       </div>
 

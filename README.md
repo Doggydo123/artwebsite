@@ -17,7 +17,12 @@ on GitHub Pages via `gh-pages`.
   Fermenting → Ready to bottle → Conditioning → Ready to drink), and a
   gravity-reading log per batch. Days since pitch, % through estimated
   fermentation, estimated bottling/drink-ready dates, and current ABV are
-  all computed live from the latest reading you log.
+  all computed live from the latest reading you log. Shows **two**
+  progress bars side by side: one estimated from the calendar, one
+  measured from your latest hydrometer reading against the expected FG —
+  they can diverge a lot (a batch can be "33% through by date" but "99%
+  complete by gravity" if it's fermenting faster than scheduled), plus an
+  "At target FG" badge once a reading lands inside the expected FG range.
 - **Running** — training tracker for two runners ("Me" and "Dominic",
   switchable via tabs) working toward one goal: 30km of off-track, uphill
   running, comfortably. Log **Flat Running** (km), **Hill Running**
@@ -36,15 +41,18 @@ on GitHub Pages via `gh-pages`.
   elevation gained in the last 30 days as plain practical readouts. All
   of it — point rates, decay half-life, the leveling curve — is editable
   in "Training Rules".
-- **Claude's Games** — a personal points system: log Gym sessions, Steps,
-  Sleep, Pages Read, and Spending, and see them converted into a score
-  using editable scoring rules. Categories roll up into four stats —
-  **Physical** (Gym, Steps), **Mental** (Sleep), **Learning** (Pages Read),
-  **Upkeep** (Spending) — each with its own level, plus an overall
-  **Cumulative Level** from the total across all of them. Levels get
-  harder to reach each time (an editable curve — see "Leveling" in the
-  Scoring Rules panel). Has its own passcode on top of the main login
-  (see below), so only Claude gets in.
+- **Claude's Games** — a personal points system: log **Exercise** (an
+  activity + duration, e.g. "Yoga, 30min" — no more sets/reps/weight),
+  **Steps**, **Sleep**, **Pages Read**, **Water** (litres), **Screentime**
+  (points for staying under a target), **Spending**, and **Savings**
+  (points for money saved or invested), all converted into a score using
+  editable scoring rules. Categories roll up into four stats —
+  **Physical** (Exercise, Steps), **Mental** (Sleep), **Wellbeing** (Pages
+  Read, Water, Screentime), **Finances** (Spending, Savings) — each with
+  its own level, plus an overall **Cumulative Level** from the total
+  across all of them. Levels get harder to reach each time (an editable
+  curve — see "Leveling" in the Scoring Rules panel). Has its own
+  passcode on top of the main login (see below), so only Claude gets in.
 
 ## Login gate
 
