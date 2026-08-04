@@ -70,6 +70,43 @@ export function atTargetFg(brew) {
   return Number(latest.gravity) <= Number(brew.fgHigh);
 }
 
+// What this single batch would have cost to buy commercially, vs what it
+// actually cost in ingredients. Returns null if volume or a commercial
+// reference price hasn't been set on the brew.
+export function brewSavings(brew) {
+  if (!brew.volumeL || !brew.commercialPricePerLitre) return null;
+  const commercialValue = Number(brew.volumeL) * Number(brew.commercialPricePerLitre);
+  const cost = Number(brew.ingredientCost) || 0;
+  return { commercialValue, cost, saved: commercialValue - cost };
+}
+
+// Aggregate cost tracker across every brew + one-time capital investment
+// (equipment, gas, etc.): what's gone in, what buying the equivalent
+// commercially would have cost, and whether the equipment has paid for
+// itself yet.
+export function computeCostSummary(brews, investments) {
+  const equipmentInvested = (investments || []).reduce((s, i) => s + (Number(i.amount) || 0), 0);
+  const ingredientsSpent = brews.reduce((s, b) => s + (Number(b.ingredientCost) || 0), 0);
+  const commercialValue = brews.reduce((s, b) => {
+    const savings = brewSavings(b);
+    return s + (savings ? savings.commercialValue : 0);
+  }, 0);
+  const totalSaved = commercialValue - ingredientsSpent;
+  const totalSpent = equipmentInvested + ingredientsSpent;
+  const netPosition = totalSaved - equipmentInvested;
+  const breakevenPct = equipmentInvested > 0 ? Math.max(0, Math.min(100, (totalSaved / equipmentInvested) * 100)) : 0;
+  return {
+    equipmentInvested,
+    ingredientsSpent,
+    commercialValue,
+    totalSaved,
+    totalSpent,
+    netPosition,
+    breakevenPct,
+    breakevenReached: netPosition >= 0 && equipmentInvested > 0
+  };
+}
+
 export function formatRange(low, high, digits) {
   if (low === null || low === undefined || low === "") return "—";
   const lowNum = Number(low);

@@ -39,12 +39,14 @@ const DEFAULT_RULES = {
 const BREW_SHEET = "Brews";
 const BREW_READINGS_SHEET = "BrewReadings";
 const BREW_META_SHEET = "BrewMeta";
+const BREW_INVESTMENTS_SHEET = "BrewInvestments";
 const BREW_HEADERS = [
   "id", "name", "subtitle", "type", "volumeL", "og", "fgLow", "fgHigh", "abvLow", "abvHigh",
   "yeast", "extras", "fermentTempC", "fermWeeksLow", "fermWeeksHigh", "readyWeeksLow", "readyWeeksHigh",
-  "pitchedAt", "status", "notes"
+  "pitchedAt", "status", "notes", "ingredientCost", "commercialPricePerLitre"
 ];
 const BREW_READING_HEADERS = ["id", "brewId", "date", "gravity", "notes"];
+const BREW_INVESTMENT_HEADERS = ["id", "name", "amount", "date", "notes"];
 
 // ---- Running ----
 const RUN_ENTRIES_SHEET = "RunEntries";
@@ -81,9 +83,11 @@ function doGet(e) {
     if (resource === "brewing") {
       const brewSheet = getOrCreateSheet(ss, BREW_SHEET, BREW_HEADERS);
       const readingsSheet = getOrCreateSheet(ss, BREW_READINGS_SHEET, BREW_READING_HEADERS);
+      const investmentsSheet = getOrCreateSheet(ss, BREW_INVESTMENTS_SHEET, BREW_INVESTMENT_HEADERS);
       return jsonResponse({
         brand: readBrand(ss),
         brews: readBrews(brewSheet, readingsSheet),
+        investments: readBrewInvestments(investmentsSheet),
         updatedAt: readMetaValue(ss, BREW_META_SHEET)
       });
     }
@@ -124,8 +128,10 @@ function doPost(e) {
     if (resource === "brewing") {
       const brewSheet = getOrCreateSheet(ss, BREW_SHEET, BREW_HEADERS);
       const readingsSheet = getOrCreateSheet(ss, BREW_READINGS_SHEET, BREW_READING_HEADERS);
+      const investmentsSheet = getOrCreateSheet(ss, BREW_INVESTMENTS_SHEET, BREW_INVESTMENT_HEADERS);
       writeBrews(brewSheet, readingsSheet, body.brews || []);
       if (body.brand) writeBrand(ss, body.brand);
+      writeBrewInvestments(investmentsSheet, body.investments || []);
       writeMetaValue(ss, BREW_META_SHEET, updatedAt);
       return jsonResponse({ ok: true, updatedAt });
     }
@@ -296,6 +302,8 @@ function readBrews(brewSheet, readingsSheet) {
       pitchedAt: row[17],
       status: row[18],
       notes: row[19],
+      ingredientCost: row[20] === "" ? null : Number(row[20]),
+      commercialPricePerLitre: row[21] === "" ? null : Number(row[21]),
       readings: readingsByBrew[String(row[0])] || []
     }));
 }
@@ -326,7 +334,8 @@ function writeBrews(brewSheet, readingsSheet, brews) {
     const rows = brews.map((b) => [
       b.id, b.name, b.subtitle ?? "", b.type, b.volumeL ?? "", b.og, b.fgLow, b.fgHigh, b.abvLow, b.abvHigh,
       b.yeast ?? "", b.extras ?? "", b.fermentTempC ?? "", b.fermWeeksLow, b.fermWeeksHigh,
-      b.readyWeeksLow, b.readyWeeksHigh, b.pitchedAt, b.status, b.notes ?? ""
+      b.readyWeeksLow, b.readyWeeksHigh, b.pitchedAt, b.status, b.notes ?? "",
+      b.ingredientCost ?? "", b.commercialPricePerLitre ?? ""
     ]);
     // Keep "pitchedAt" as plain text — otherwise Sheets auto-converts it to
     // a Date cell and reading it back shifts by the spreadsheet's timezone.
@@ -347,6 +356,32 @@ function writeBrews(brewSheet, readingsSheet, brews) {
     readingsSheet.getRange(2, 3, readingRows.length, 1).setNumberFormat("@");
     readingsSheet.getRange(2, 1, readingRows.length, BREW_READING_HEADERS.length).setValues(readingRows);
   }
+}
+
+function readBrewInvestments(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const values = sheet.getRange(2, 1, lastRow - 1, BREW_INVESTMENT_HEADERS.length).getValues();
+  return values
+    .filter((row) => row[0] !== "")
+    .map((row) => ({
+      id: String(row[0]),
+      name: row[1],
+      amount: Number(row[2]),
+      date: row[3],
+      notes: row[4]
+    }));
+}
+
+function writeBrewInvestments(sheet, investments) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, BREW_INVESTMENT_HEADERS.length).clearContent();
+  if (!investments.length) return;
+  const rows = investments.map((i) => [i.id, i.name, i.amount, i.date, i.notes ?? ""]);
+  // Keep "date" as plain text — otherwise Sheets auto-converts it to a
+  // Date cell and reading it back shifts by the spreadsheet's timezone.
+  sheet.getRange(2, 4, rows.length, 1).setNumberFormat("@");
+  sheet.getRange(2, 1, rows.length, BREW_INVESTMENT_HEADERS.length).setValues(rows);
 }
 
 function readBrand(ss) {

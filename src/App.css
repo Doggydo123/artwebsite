@@ -480,6 +480,23 @@ input:focus, select:focus, textarea:focus {
 .brew-readings-title { font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin: 0; }
 .brew-modal { max-width: 640px; }
 
+/* ---------- Brewing: cost tracker ---------- */
+.cost-tracker { margin-bottom: 1.25rem; }
+.cost-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+.cost-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--accent-dim);
+  background: rgba(53, 240, 255, 0.03);
+  border-radius: 4px;
+}
+.cost-stat span { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.cost-stat strong { font-family: var(--font-display); font-size: 1.2rem; color: var(--accent); }
+.cost-breakeven { margin-bottom: 1.25rem; }
+.cost-investments-toolbar { margin-top: 0.5rem; }
+
 /* ---------- Passcode gate (Claude's Games) ---------- */
 .passcode-panel { max-width: 420px; margin: 3rem auto; padding: 2rem; text-align: center; }
 .passcode-hint { color: var(--text-dim); font-size: 0.85rem; margin: -0.5rem 0 1.25rem; }

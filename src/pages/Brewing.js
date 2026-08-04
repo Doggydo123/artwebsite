@@ -11,6 +11,8 @@ import {
   looksStable,
   gravityCompletionPercent,
   atTargetFg,
+  brewSavings,
+  computeCostSummary,
   formatRange,
   formatDate
 } from "../lib/brewCalc";
@@ -19,7 +21,10 @@ const LOCAL_KEY = "claudis_brewing_data";
 
 function loadLocal() {
   const raw = localStorage.getItem(LOCAL_KEY);
-  if (raw) return JSON.parse(raw);
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    return { ...parsed, investments: parsed.investments || [] };
+  }
   return { ...BREW_SEED, updatedAt: 0 };
 }
 
@@ -27,10 +32,16 @@ const emptyBrewForm = {
   id: "", name: "", subtitle: "", type: "", volumeL: "", og: "",
   fgLow: "", fgHigh: "", abvLow: "", abvHigh: "", yeast: "", extras: "",
   fermentTempC: "", fermWeeksLow: "", fermWeeksHigh: "", readyWeeksLow: "", readyWeeksHigh: "",
-  pitchedAt: "", status: "Pitched", notes: ""
+  pitchedAt: "", status: "Pitched", notes: "", ingredientCost: "", commercialPricePerLitre: ""
 };
 
 const emptyReadingForm = { id: "", date: "", gravity: "", notes: "" };
+
+const emptyInvestmentForm = { id: "", name: "", amount: "", date: "", notes: "" };
+
+function money(n) {
+  return "NZ$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -42,6 +53,8 @@ export default function Brewing() {
   const [brewForm, setBrewForm] = useState(emptyBrewForm);
   const [readingModalFor, setReadingModalFor] = useState(null); // brewId or null
   const [readingForm, setReadingForm] = useState(emptyReadingForm);
+  const [investmentModal, setInvestmentModal] = useState(false);
+  const [investmentForm, setInvestmentForm] = useState(emptyInvestmentForm);
 
   const sheetsSync = useSheetsSync({
     resource: "brewing",
@@ -49,7 +62,12 @@ export default function Brewing() {
       setDataState((local) => {
         const remoteIsNewer = (remote.updatedAt || 0) > (local.updatedAt || 0);
         if (remoteIsNewer) {
-          return { brand: remote.brand || "BYB", brews: remote.brews || [], updatedAt: remote.updatedAt };
+          return {
+            brand: remote.brand || "BYB",
+            brews: remote.brews || [],
+            investments: remote.investments || [],
+            updatedAt: remote.updatedAt
+          };
         }
         sheetsSync.push(local);
         return local;
@@ -80,7 +98,8 @@ export default function Brewing() {
       yeast: brew.yeast || "", extras: brew.extras || "", fermentTempC: brew.fermentTempC ?? "",
       fermWeeksLow: brew.fermWeeksLow ?? "", fermWeeksHigh: brew.fermWeeksHigh ?? "",
       readyWeeksLow: brew.readyWeeksLow ?? "", readyWeeksHigh: brew.readyWeeksHigh ?? "",
-      pitchedAt: brew.pitchedAt, status: brew.status, notes: brew.notes || ""
+      pitchedAt: brew.pitchedAt, status: brew.status, notes: brew.notes || "",
+      ingredientCost: brew.ingredientCost ?? "", commercialPricePerLitre: brew.commercialPricePerLitre ?? ""
     });
     setBrewModal(true);
   }
@@ -109,6 +128,8 @@ export default function Brewing() {
       pitchedAt: brewForm.pitchedAt,
       status: brewForm.status,
       notes: brewForm.notes.trim(),
+      ingredientCost: brewForm.ingredientCost === "" ? null : Number(brewForm.ingredientCost),
+      commercialPricePerLitre: brewForm.commercialPricePerLitre === "" ? null : Number(brewForm.commercialPricePerLitre),
       readings: (data.brews.find((b) => b.id === id) || {}).readings || []
     };
     const brews = [...data.brews];
@@ -152,6 +173,47 @@ export default function Brewing() {
     setReadingModalFor(null);
   }
 
+  function openNewInvestment() {
+    setInvestmentForm({ ...emptyInvestmentForm, date: todayStr() });
+    setInvestmentModal(true);
+  }
+
+  function openEditInvestment(investment) {
+    setInvestmentForm({
+      id: investment.id,
+      name: investment.name,
+      amount: investment.amount ?? "",
+      date: investment.date,
+      notes: investment.notes || ""
+    });
+    setInvestmentModal(true);
+  }
+
+  function handleInvestmentSubmit(e) {
+    e.preventDefault();
+    const id = investmentForm.id || "investment-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+    const investment = {
+      id,
+      name: investmentForm.name.trim(),
+      amount: Number(investmentForm.amount),
+      date: investmentForm.date,
+      notes: investmentForm.notes.trim()
+    };
+    const investments = [...(data.investments || [])];
+    const idx = investments.findIndex((i) => i.id === id);
+    if (idx >= 0) investments[idx] = investment;
+    else investments.push(investment);
+    persist({ ...data, investments });
+    setInvestmentModal(false);
+  }
+
+  function handleDeleteInvestment() {
+    if (!investmentForm.id) return;
+    if (!window.confirm("Delete this investment?")) return;
+    persist({ ...data, investments: (data.investments || []).filter((i) => i.id !== investmentForm.id) });
+    setInvestmentModal(false);
+  }
+
   const sheetsLabels = {
     synced: "Sheet Synced",
     syncing: "Saving to Sheet…",
@@ -159,6 +221,11 @@ export default function Brewing() {
     unconfigured: "Sheet Sync (not configured)",
     error: "Sheet Sync Error"
   };
+
+  const costSummary = useMemo(
+    () => computeCostSummary(data.brews, data.investments || []),
+    [data.brews, data.investments]
+  );
 
   return (
     <div>
@@ -175,6 +242,47 @@ export default function Brewing() {
           <button className="btn btn-primary" onClick={openNewBrew}>+ New Brew</button>
         </div>
       </div>
+
+      <section className="hud-panel panel cost-tracker">
+        <span className="hud-corner tl" /><span className="hud-corner tr" />
+        <span className="hud-corner bl" /><span className="hud-corner br" />
+        <h2 className="panel-title">Cost Tracker</h2>
+        <div className="cost-stat-grid">
+          <div className="cost-stat"><span>Equipment Invested</span><strong>{money(costSummary.equipmentInvested)}</strong></div>
+          <div className="cost-stat"><span>Ingredients Spent</span><strong>{money(costSummary.ingredientsSpent)}</strong></div>
+          <div className="cost-stat"><span>Commercial Value</span><strong>{money(costSummary.commercialValue)}</strong></div>
+          <div className="cost-stat"><span>Total Saved</span><strong>{money(costSummary.totalSaved)}</strong></div>
+        </div>
+        {costSummary.equipmentInvested > 0 && (
+          <div className="cost-breakeven">
+            <div className="level-progress-bar level-progress-bar-lg">
+              <div className="level-progress-fill" style={{ width: `${costSummary.breakevenPct}%` }} />
+            </div>
+            <span className="level-progress-label">
+              {costSummary.breakevenReached
+                ? `Breakeven reached — net ${money(costSummary.netPosition)} ahead`
+                : `${money(costSummary.totalSaved)} of ${money(costSummary.equipmentInvested)} toward breakeven — ${money(-costSummary.netPosition)} to go`}
+            </span>
+          </div>
+        )}
+        <div className="inventory-toolbar cost-investments-toolbar">
+          <h3 className="brew-readings-title">Equipment &amp; Capital Costs</h3>
+          <button className="btn btn-ghost" onClick={openNewInvestment}>+ Add Investment</button>
+        </div>
+        {(data.investments || []).length === 0 ? (
+          <div className="empty-state">No investments logged yet.</div>
+        ) : (
+          <div className="entry-list">
+            {(data.investments || []).map((inv) => (
+              <div className="entry-row" key={inv.id} onClick={() => openEditInvestment(inv)}>
+                <span className="entry-date">{inv.date}</span>
+                <span className="entry-detail">{inv.name} — {money(inv.amount)}</span>
+                {inv.notes && <span className="entry-notes">{inv.notes}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {data.brews.map((brew) => (
         <BrewCard
@@ -231,6 +339,11 @@ export default function Brewing() {
                 </label>
               </div>
               <label><span>Notes</span><textarea rows="2" value={brewForm.notes} onChange={(e) => setBrewForm({ ...brewForm, notes: e.target.value })} /></label>
+              <p className="rules-section-label">Cost Tracking</p>
+              <div className="form-row">
+                <label><span>Ingredient Cost (NZD)</span><input type="number" min="0" step="0.01" value={brewForm.ingredientCost} onChange={(e) => setBrewForm({ ...brewForm, ingredientCost: e.target.value })} /></label>
+                <label><span>Commercial Price (NZD/L)</span><input type="number" min="0" step="0.01" value={brewForm.commercialPricePerLitre} onChange={(e) => setBrewForm({ ...brewForm, commercialPricePerLitre: e.target.value })} /></label>
+              </div>
               <div className="modal-actions">
                 {brewForm.id ? <button type="button" className="btn btn-danger" onClick={handleDeleteBrew}>Delete</button> : <span />}
                 <div className="modal-actions-right">
@@ -264,6 +377,31 @@ export default function Brewing() {
           </div>
         </div>
       )}
+
+      {investmentModal && (
+        <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && setInvestmentModal(false)}>
+          <div className="hud-panel modal-panel">
+            <span className="hud-corner tl" /><span className="hud-corner tr" />
+            <span className="hud-corner bl" /><span className="hud-corner br" />
+            <h2 className="panel-title">{investmentForm.id ? "Edit Investment" : "Add Investment"}</h2>
+            <form onSubmit={handleInvestmentSubmit}>
+              <label><span>Name</span><input required value={investmentForm.name} onChange={(e) => setInvestmentForm({ ...investmentForm, name: e.target.value })} /></label>
+              <div className="form-row">
+                <label><span>Amount (NZD)</span><input type="number" min="0" step="0.01" required value={investmentForm.amount} onChange={(e) => setInvestmentForm({ ...investmentForm, amount: e.target.value })} /></label>
+                <label><span>Date</span><input type="date" required value={investmentForm.date} onChange={(e) => setInvestmentForm({ ...investmentForm, date: e.target.value })} /></label>
+              </div>
+              <label><span>Notes</span><textarea rows="2" value={investmentForm.notes} onChange={(e) => setInvestmentForm({ ...investmentForm, notes: e.target.value })} /></label>
+              <div className="modal-actions">
+                {investmentForm.id ? <button type="button" className="btn btn-danger" onClick={handleDeleteInvestment}>Delete</button> : <span />}
+                <div className="modal-actions-right">
+                  <button type="button" className="btn btn-ghost" onClick={() => setInvestmentModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary">Save Investment</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -274,6 +412,7 @@ function BrewCard({ brew, onEdit, onStatusChange, onLogReading }) {
   const gravityPct = useMemo(() => gravityCompletionPercent(brew), [brew]);
   const stable = useMemo(() => looksStable(brew), [brew]);
   const atTarget = useMemo(() => atTargetFg(brew), [brew]);
+  const savings = useMemo(() => brewSavings(brew), [brew]);
   const readings = [...(brew.readings || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
@@ -298,6 +437,8 @@ function BrewCard({ brew, onEdit, onStatusChange, onLogReading }) {
         <div className="brew-spec"><span>Est. ABV</span><strong>{formatRange(brew.abvLow, brew.abvHigh, 1)}%</strong></div>
         {brew.fermentTempC ? <div className="brew-spec"><span>Ferment Temp</span><strong>{brew.fermentTempC}°C</strong></div> : null}
         <div className="brew-spec"><span>Yeast</span><strong>{brew.yeast || "—"}</strong></div>
+        {brew.ingredientCost ? <div className="brew-spec"><span>Ingredient Cost</span><strong>{money(brew.ingredientCost)}</strong></div> : null}
+        {savings && <div className="brew-spec"><span>Saved vs Buying</span><strong>{money(savings.saved)}</strong></div>}
       </div>
       {brew.extras && <p className="brew-extras">{brew.extras}</p>}
       {brew.notes && <p className="brew-extras">{brew.notes}</p>}

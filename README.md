@@ -23,6 +23,11 @@ on GitHub Pages via `gh-pages`.
   they can diverge a lot (a batch can be "33% through by date" but "99%
   complete by gravity" if it's fermenting faster than scheduled), plus an
   "At target FG" badge once a reading lands inside the expected FG range.
+  A **Cost Tracker** panel logs one-time equipment/capital investments
+  (bucket, kegging rig, gas, etc.) separately from per-batch ingredient
+  cost, compares each batch's volume against a commercial reference price
+  you set per brew, and shows a live breakeven bar: total saved vs. total
+  invested, with "$X to go" or "breakeven reached — net $Y ahead."
 - **Running** — training tracker for two runners ("Me" and "Dominic",
   switchable via tabs) working toward one goal: 30km of off-track, uphill
   running, comfortably. Log **Flat Running** (km), **Hill Running**
@@ -164,9 +169,10 @@ on by accident; it isn't a substitute for the login/passcode gates, which
 are what actually keep casual visitors out.
 
 The spreadsheet gets: **Items** + **Meta** (Collecting), **Brews** +
-**BrewReadings** + **BrewMeta** (Brewing), **RunEntries** + **RunRules** +
-**RunMeta** (Running), and **GameEntries** + **GameRules** + **GameMeta**
-(Claude's Games). Each `*Meta` sheet holds an `updatedAt` timestamp (row 1)
+**BrewReadings** + **BrewInvestments** + **BrewMeta** (Brewing),
+**RunEntries** + **RunRules** + **RunMeta** (Running), and **GameEntries**
++ **GameRules** + **GameMeta** (Claude's Games). Each `*Meta` sheet holds
+an `updatedAt` timestamp (row 1)
 used to decide whether the sheet or a browser's local copy is newer when
 they disagree; **GameMeta** also holds the current passcode hash (row 2)
 once it's been changed in-app.
